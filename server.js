@@ -3,14 +3,14 @@ const multer = require('multer');
 const path = require('path');
 const db = require('./db');
 const { parseAnimalCSV } = require('./csv-validator');
-
+ 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
+ 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
-
+ 
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -22,7 +22,7 @@ const upload = multer({
     }
   }
 });
-
+ 
 app.post('/api/farms', (req, res) => {
   const { farm_name, contact_name, email, phone, country, region, traceability_id, farm_type, calving_season, non_replacements_available, notes } = req.body;
   const errors = [];
@@ -44,7 +44,7 @@ app.post('/api/farms', (req, res) => {
     res.status(500).json({ success: false, errors: ['Internal server error'] });
   }
 });
-
+ 
 app.get('/api/farms/:id', (req, res) => {
   const farm = db.prepare('SELECT * FROM farms WHERE id = ?').get(req.params.id);
   if (!farm) return res.status(404).json({ success: false, error: 'Farm not found' });
@@ -53,7 +53,7 @@ app.get('/api/farms/:id', (req, res) => {
   const uploads = db.prepare('SELECT * FROM csv_uploads WHERE farm_id = ? ORDER BY created_at DESC LIMIT 10').all(req.params.id);
   res.json({ success: true, farm, mobs, total_animals: animalCount.count, recent_uploads: uploads });
 });
-
+ 
 app.post('/api/farms/:id/animals/upload', upload.single('csv'), (req, res) => {
   const farm = db.prepare('SELECT * FROM farms WHERE id = ?').get(req.params.id);
   if (!farm) return res.status(404).json({ success: false, error: 'Farm not found' });
@@ -80,7 +80,7 @@ app.post('/api/farms/:id/animals/upload', upload.single('csv'), (req, res) => {
   db.prepare('INSERT INTO csv_uploads (farm_id, filename, upload_type, rows_total, rows_accepted, rows_rejected, errors) VALUES (?, ?, ?, ?, ?, ?, ?)').run(farm.id, req.file.originalname, 'animal_registration', parseResult.total, inserted, parseResult.rejected + duplicates, JSON.stringify(errorDetails));
   res.json({ success: true, summary: { total_rows: parseResult.total, inserted, duplicates, rejected: parseResult.rejected } });
 });
-
+ 
 app.get('/api/farms/:id/animals', (req, res) => {
   const farm = db.prepare('SELECT * FROM farms WHERE id = ?').get(req.params.id);
   if (!farm) return res.status(404).json({ success: false, error: 'Farm not found' });
@@ -88,12 +88,12 @@ app.get('/api/farms/:id/animals', (req, res) => {
   const stats = db.prepare("SELECT COUNT(*) as total, SUM(CASE WHEN sex = 'bull' THEN 1 ELSE 0 END) as bulls, SUM(CASE WHEN sex = 'steer' THEN 1 ELSE 0 END) as steers, SUM(CASE WHEN sex = 'heifer' THEN 1 ELSE 0 END) as heifers, AVG(birth_weight_kg) as avg_birth_weight FROM animals WHERE farm_id = ?").get(req.params.id);
   res.json({ success: true, animals, stats });
 });
-
+ 
 app.get('/api/farms', (req, res) => {
   const farms = db.prepare('SELECT f.*, (SELECT COUNT(*) FROM animals WHERE farm_id = f.id) as animal_count, (SELECT COUNT(*) FROM mobs WHERE farm_id = f.id) as mob_count FROM farms f ORDER BY f.created_at DESC').all();
   res.json({ success: true, farms });
 });
-
+ 
 app.get('/api/stats', (req, res) => {
   try {
     const farmCount = db.prepare('SELECT COUNT(*) as count FROM farms').get();
@@ -106,11 +106,11 @@ app.get('/api/stats', (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to load stats' });
   }
 });
-
+ 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-
+ 
 app.listen(PORT, () => {
   console.log('KaiProva registration engine running on port ' + PORT);
 });
