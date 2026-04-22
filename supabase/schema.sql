@@ -11,13 +11,13 @@ create table if not exists farms (
   created_at  timestamptz not null default now()
 );
 
-create table if not exists animals (
+create table if not exists mobs (
   id          uuid primary key default gen_random_uuid(),
   farm_id     uuid not null references farms(id) on delete cascade,
-  tag_id      text,
-  species     text,
+  mob_name    text not null,
   breed       text,
-  dob         date,
   sex         text,
-  created_at  timestamptz not null default now()
-);
+  drop_type   text,
+  head_count  integer,
+  avg_weight  numeric,
+  created_at  timesta
