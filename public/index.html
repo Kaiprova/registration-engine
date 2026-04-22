@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
   <title>KaiProva — Farmer Platform</title>
 
   <!-- Favicons -->
@@ -20,6 +21,7 @@
 
   <style>
     :root {
+      color-scheme: light;
       --kp-pasture-deep: #0E3F26;
       --kp-pasture-mid: #1A6B42;
       --kp-pasture-lit: #1F8453;
@@ -36,6 +38,8 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { background: var(--kp-paper); }
 
     body {
       font-family: var(--kp-sans);
@@ -77,9 +81,9 @@
 
     /* ---- Layout ---- */
     .main {
-      max-width: 680px;
+      max-width: 700px;
       margin: 0 auto;
-      padding: 3rem 1.5rem 4rem;
+      padding: 3rem 1.5rem 5rem;
     }
 
     /* ---- Cards ---- */
@@ -117,6 +121,9 @@
     p:last-child { margin-bottom: 0; }
 
     /* ---- Form elements ---- */
+    .field-group { margin-top: 1.1rem; }
+    .field-group:first-of-type { margin-top: 0.5rem; }
+
     label {
       display: block;
       font-size: 12px;
@@ -125,12 +132,11 @@
       letter-spacing: 0.04em;
       color: var(--kp-ink-muted);
       margin-bottom: 5px;
-      margin-top: 1.1rem;
     }
-    label:first-of-type { margin-top: 0.5rem; }
 
     input[type="email"],
     input[type="text"],
+    input[type="number"],
     select {
       width: 100%;
       padding: 10px 13px;
@@ -141,12 +147,29 @@
       background: white;
       color: var(--kp-ink);
       appearance: none;
+      -webkit-appearance: none;
       transition: border-color 0.15s;
     }
     input:focus, select:focus {
       outline: none;
       border-color: var(--kp-pasture-mid);
       box-shadow: 0 0 0 3px rgba(26, 107, 66, 0.1);
+    }
+
+    .select-wrap { position: relative; }
+    .select-wrap select { padding-right: 2.5rem; }
+    .select-wrap::after {
+      content: '';
+      position: absolute;
+      right: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid var(--kp-ink-muted);
+      pointer-events: none;
     }
 
     /* ---- Buttons ---- */
@@ -170,10 +193,34 @@
     .btn-primary {
       background: var(--kp-pasture-mid);
       color: white;
-      width: 100%;
-      margin-top: 1.25rem;
     }
     .btn-primary:hover:not(:disabled) { background: var(--kp-pasture-deep); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--kp-ink-muted);
+      border: 1px solid var(--kp-border);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--kp-paper);
+      border-color: var(--kp-ink-muted);
+    }
+
+    .btn-link {
+      background: none;
+      border: none;
+      color: var(--kp-pasture-mid);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 0;
+      font-family: var(--kp-sans);
+      font-weight: 500;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .btn-link:hover { color: var(--kp-pasture-deep); }
+
+    .btn-full { width: 100%; }
 
     /* ---- Alerts ---- */
     .alert {
@@ -187,22 +234,13 @@
     .alert-error   { background: #FEF0EB; color: #8B2200; border: 1px solid #F5C0A0; }
     .alert-info    { background: #EEF4FB; color: #1A3E6B; border: 1px solid #AACBE8; }
 
-    /* ---- Step indicator ---- */
-    .steps {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 1.75rem;
-    }
-    .step {
-      flex: 1;
-      height: 3px;
-      background: var(--kp-border);
-      border-radius: 2px;
-      transition: background 0.2s;
-    }
-    .step.active, .step.done { background: var(--kp-pasture-mid); }
+    /* ---- Section visibility ---- */
+    .section { display: none; }
+    .section.visible { display: block; }
 
-    /* ---- Login hero ---- */
+    /* ================================================================
+       LOGIN
+    ================================================================ */
     .login-hero {
       text-align: center;
       padding: 2rem 0 0.25rem;
@@ -216,19 +254,162 @@
       color: var(--kp-ink-muted);
     }
 
-    /* ---- Dashboard ---- */
-    .dash-title { margin-bottom: 0.25rem; }
+    /* ================================================================
+       MAGIC LINK SENT
+    ================================================================ */
+    .sent-card {
+      text-align: center;
+      padding: 3rem 2rem 2.5rem;
+    }
+    .sent-icon-wrap {
+      width: 68px;
+      height: 68px;
+      background: #E6F2EC;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 2rem;
+      line-height: 1;
+    }
+    .sent-email-badge {
+      display: inline-block;
+      background: rgba(14, 63, 38, 0.07);
+      border: 1px solid rgba(14, 63, 38, 0.15);
+      border-radius: 6px;
+      padding: 5px 13px;
+      font-weight: 600;
+      color: var(--kp-pasture-deep);
+      font-size: 15px;
+      margin: 0.5rem 0 1.5rem;
+    }
+    .sent-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      text-align: left;
+      background: var(--kp-paper);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 0 auto 1.5rem;
+      max-width: 380px;
+    }
+    .sent-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 13px;
+      color: var(--kp-ink-muted);
+      line-height: 1.5;
+    }
+    .sent-step-num {
+      min-width: 22px;
+      height: 22px;
+      background: var(--kp-pasture-mid);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 0.1em;
+    }
+    .sent-alt {
+      font-size: 13px;
+      color: var(--kp-ink-muted);
+      margin-top: 0;
+    }
+
+    /* ================================================================
+       FARM SETUP WIZARD
+    ================================================================ */
+    .wizard-header {
+      margin-bottom: 1.75rem;
+    }
+    .wizard-step-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--kp-pasture-mid);
+      margin-bottom: 0.5rem;
+    }
+    .steps {
+      display: flex;
+      gap: 6px;
+    }
+    .step {
+      flex: 1;
+      height: 3px;
+      background: var(--kp-border);
+      border-radius: 2px;
+      transition: background 0.25s;
+    }
+    .step.active, .step.done { background: var(--kp-pasture-mid); }
+
+    .wizard-nav {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+    .wizard-nav .btn { flex: 1; }
+
+    /* Confirmation summary */
+    .summary-list {
+      list-style: none;
+      border: 1px solid var(--kp-border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 1rem 0 0;
+    }
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--kp-border);
+    }
+    .summary-item:last-child { border-bottom: none; }
+    .summary-key {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--kp-ink-muted);
+      flex-shrink: 0;
+      padding-right: 1rem;
+    }
+    .summary-val {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--kp-ink);
+      text-align: right;
+    }
+
+    /* ================================================================
+       DASHBOARD
+    ================================================================ */
+    .dash-header {
+      margin-bottom: 1.75rem;
+    }
+    .dash-title { margin-bottom: 0.2rem; }
     .dash-meta {
       font-size: 14px;
       color: var(--kp-ink-muted);
-      margin-bottom: 1.75rem;
     }
 
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 1rem;
       margin-bottom: 1.5rem;
+    }
+    @media (max-width: 520px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .stat-card-wide { grid-column: span 2; }
     }
     .stat-card {
       background: var(--kp-paper-surface);
@@ -243,40 +424,81 @@
       color: var(--kp-pasture-mid);
       line-height: 1;
     }
+    .stat-value-sm {
+      font-family: var(--kp-serif);
+      font-size: 1.4rem;
+      font-weight: 500;
+      color: var(--kp-pasture-mid);
+      line-height: 1;
+    }
     .stat-label {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--kp-ink-muted);
       margin-top: 6px;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
-      font-weight: 600;
+      letter-spacing: 0.05em;
+      font-weight: 700;
     }
 
-    /* ---- Mob list ---- */
-    .mob-list { list-style: none; }
-    .mob-item {
-      padding: 13px 0;
+    /* ---- Mob table ---- */
+    .mob-table-wrap { overflow-x: auto; }
+    .mob-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .mob-table th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--kp-ink-muted);
+      padding: 0 0.75rem 0.6rem;
       border-bottom: 1px solid var(--kp-border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      white-space: nowrap;
     }
-    .mob-item:last-child { border-bottom: none; }
-    .mob-name { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
-    .mob-meta { font-size: 12px; color: var(--kp-ink-muted); }
-    .mob-count {
+    .mob-table th.align-right,
+    .mob-table td.align-right { text-align: right; }
+    .mob-table td {
+      padding: 12px 0.75rem;
+      border-bottom: 1px solid var(--kp-border);
+      vertical-align: middle;
+    }
+    .mob-table tr:last-child td { border-bottom: none; }
+    .mob-name-cell { font-weight: 600; color: var(--kp-ink); }
+    .mob-meta-cell { font-size: 12px; color: var(--kp-ink-muted); margin-top: 2px; }
+    .mob-count-val {
       font-family: var(--kp-serif);
-      font-size: 1.5rem;
-      font-weight: 500;
+      font-size: 1.35rem;
       color: var(--kp-pasture-mid);
-      text-align: right;
+      font-weight: 500;
+      line-height: 1;
     }
-    .mob-count-label {
+    .mob-count-sub {
       font-size: 11px;
       color: var(--kp-ink-muted);
-      font-family: var(--kp-sans);
-      display: block;
-      text-align: right;
+      margin-top: 2px;
+    }
+
+    /* ---- Empty state ---- */
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem 1.5rem;
+    }
+    .empty-icon { font-size: 2.5rem; margin-bottom: 0.6rem; }
+    .empty-title {
+      font-family: var(--kp-serif);
+      font-size: 1.1rem;
+      color: var(--kp-pasture-deep);
+      margin-bottom: 0.4rem;
+    }
+    .empty-body {
+      font-size: 13px;
+      color: var(--kp-ink-muted);
+      max-width: 280px;
+      margin: 0 auto;
+      line-height: 1.55;
     }
 
     /* ---- Upload zone ---- */
@@ -289,24 +511,37 @@
       transition: border-color 0.15s, background 0.15s;
       margin-top: 0.75rem;
     }
-    .upload-zone:hover,
-    .upload-zone.dragover {
+    .upload-zone:hover, .upload-zone.dragover {
       border-color: var(--kp-pasture-mid);
       background: rgba(26, 107, 66, 0.04);
     }
-    .upload-icon { font-size: 2rem; margin-bottom: 0.5rem; }
-    .upload-hint { font-size: 13px; color: var(--kp-ink-muted); }
-
-    /* ---- Section visibility ---- */
-    .section { display: none; }
-    .section.visible { display: block; }
-
-    /* ---- Magic link sent ---- */
-    .sent-card {
-      text-align: center;
-      padding: 3rem 2rem;
+    .upload-zone-icon { font-size: 2rem; margin-bottom: 0.4rem; }
+    .upload-zone-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--kp-ink);
+      margin-bottom: 4px;
     }
-    .sent-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .upload-zone-hint { font-size: 13px; color: var(--kp-ink-muted); }
+
+    .upload-spec {
+      background: var(--kp-paper);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      margin-top: 0.75rem;
+      font-size: 12px;
+      color: var(--kp-ink-muted);
+      line-height: 1.6;
+    }
+    .upload-spec strong { color: var(--kp-ink); }
+    code {
+      font-family: 'Courier New', monospace;
+      background: rgba(0, 0, 0, 0.06);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 11px;
+      color: var(--kp-pasture-deep);
+    }
   </style>
 </head>
 <body>
@@ -321,7 +556,9 @@
 
 <main class="main" id="app">
 
-  <!-- Login -->
+  <!-- ================================================================
+       LOGIN
+  ================================================================ -->
   <section id="sectionLogin" class="section visible">
     <div class="login-hero">
       <img src="/brand/kaiprova-horizontal.svg" alt="KaiProva" />
@@ -331,100 +568,211 @@
     <div class="card" style="margin-top: 1.5rem;">
       <h2>Sign in</h2>
       <p>Enter your email and we'll send you a magic link — no password needed.</p>
-      <label for="loginEmail">Email address</label>
-      <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email" />
+      <div class="field-group">
+        <label for="loginEmail">Email address</label>
+        <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email" />
+      </div>
       <div id="loginAlert"></div>
-      <button class="btn btn-primary" id="btnSendMagicLink">Send magic link</button>
+      <button class="btn btn-primary btn-full" id="btnSendMagicLink" style="margin-top: 1.25rem;">Send magic link</button>
     </div>
   </section>
 
-  <!-- Magic link sent -->
+  <!-- ================================================================
+       MAGIC LINK SENT
+  ================================================================ -->
   <section id="sectionMagicSent" class="section">
     <div class="card sent-card">
-      <div class="sent-icon">📬</div>
+      <div class="sent-icon-wrap">📬</div>
       <h2>Check your email</h2>
-      <p>We sent a magic link to <strong id="magicLinkEmail"></strong>.<br />Click it to sign in to your farm.</p>
+      <p style="margin-bottom: 0.25rem;">We've sent a magic link to</p>
+      <span class="sent-email-badge" id="magicLinkEmail"></span>
+      <p>Click the link in that email to sign in to your KaiProva account.</p>
+
+      <div class="sent-steps">
+        <div class="sent-step">
+          <div class="sent-step-num">1</div>
+          <span>Open the email from KaiProva in your inbox (check spam if it doesn't arrive within a minute)</span>
+        </div>
+        <div class="sent-step">
+          <div class="sent-step-num">2</div>
+          <span>Click <strong style="color: var(--kp-ink);">"Sign in to KaiProva"</strong> in the email</span>
+        </div>
+        <div class="sent-step">
+          <div class="sent-step-num">3</div>
+          <span>You'll land back here, signed in automatically — no password needed</span>
+        </div>
+      </div>
+
+      <p class="sent-alt">Wrong address? <button class="btn-link" id="btnTryDifferentEmail">Try a different email</button></p>
     </div>
   </section>
 
-  <!-- Farm registration -->
+  <!-- ================================================================
+       FARM SETUP WIZARD
+  ================================================================ -->
   <section id="sectionRegister" class="section">
-    <div class="steps">
-      <div class="step active" id="step1"></div>
-      <div class="step" id="step2"></div>
-      <div class="step" id="step3"></div>
+
+    <div class="wizard-header">
+      <div class="wizard-step-label">Step <span id="wizardStepNum">1</span> of 3</div>
+      <div class="steps">
+        <div class="step active" id="wstep1"></div>
+        <div class="step" id="wstep2"></div>
+        <div class="step" id="wstep3"></div>
+      </div>
     </div>
-    <div class="card">
-      <h2>Register your farm</h2>
-      <p>Tell us about your operation to get started on KaiProva.</p>
-      <label for="farmName">Farm name</label>
-      <input type="text" id="farmName" placeholder="e.g. Greenacre Station" autocomplete="off" />
-      <label for="farmRegion">Region</label>
-      <select id="farmRegion">
-        <option value="">Select region…</option>
-        <option>Northland</option>
-        <option>Auckland</option>
-        <option>Waikato</option>
-        <option>Bay of Plenty</option>
-        <option>Gisborne</option>
-        <option>Hawke's Bay</option>
-        <option>Taranaki</option>
-        <option>Manawatū-Whanganui</option>
-        <option>Wellington</option>
-        <option>Tasman</option>
-        <option>Nelson</option>
-        <option>Marlborough</option>
-        <option>West Coast</option>
-        <option>Canterbury</option>
-        <option>Otago</option>
-        <option>Southland</option>
-      </select>
-      <label for="farmType">Farm type</label>
-      <select id="farmType">
-        <option value="">Select type…</option>
-        <option value="dairy_birth">Dairy birth farm</option>
-        <option value="rearer">Rearer</option>
-        <option value="finisher">Finisher</option>
-        <option value="rearer_finisher">Rearer / Finisher</option>
-      </select>
-      <div id="registerAlert"></div>
-      <button class="btn btn-primary" id="btnRegisterFarm">Register farm</button>
+
+    <!-- Step 1: Farm name + region -->
+    <div class="card" id="wizardStep1">
+      <h2>Tell us about your farm</h2>
+      <p>Start with the basics — your farm name and where you're located in New Zealand.</p>
+
+      <div class="field-group">
+        <label for="farmName">Farm name</label>
+        <input type="text" id="farmName" placeholder="e.g. Greenacre Station" autocomplete="off" />
+      </div>
+
+      <div class="field-group">
+        <label for="farmRegion">Region</label>
+        <div class="select-wrap">
+          <select id="farmRegion">
+            <option value="">Select region…</option>
+            <option>Northland</option>
+            <option>Waikato</option>
+            <option>Bay of Plenty</option>
+            <option>Gisborne</option>
+            <option>Hawke's Bay</option>
+            <option>Taranaki</option>
+            <option>Manawatū-Whanganui</option>
+            <option>Wellington</option>
+            <option>Nelson/Tasman</option>
+            <option>Marlborough</option>
+            <option>West Coast</option>
+            <option>Canterbury</option>
+            <option>Otago</option>
+            <option>Southland</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="step1Alert"></div>
+
+      <div class="wizard-nav">
+        <button class="btn btn-primary" id="btnStep1Next">Continue →</button>
+      </div>
     </div>
+
+    <!-- Step 2: Herd size + farm type -->
+    <div class="card" id="wizardStep2" style="display:none">
+      <h2>About your herd</h2>
+      <p>Help us understand the scale and type of your operation.</p>
+
+      <div class="field-group">
+        <label for="herdSize">Approximate herd size</label>
+        <input type="number" id="herdSize" placeholder="e.g. 300" min="1" max="99999" />
+      </div>
+
+      <div class="field-group">
+        <label for="farmType">Farm type</label>
+        <div class="select-wrap">
+          <select id="farmType">
+            <option value="">Select type…</option>
+            <option value="dairy">Dairy</option>
+            <option value="dairy_support">Dairy Support</option>
+            <option value="dairy_and_support">Dairy &amp; Support</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="step2Alert"></div>
+
+      <div class="wizard-nav">
+        <button class="btn btn-secondary" id="btnStep2Back">← Back</button>
+        <button class="btn btn-primary" id="btnStep2Next">Continue →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Confirmation summary -->
+    <div class="card" id="wizardStep3" style="display:none">
+      <h2>Confirm your details</h2>
+      <p>Take a look before we create your farm — you can always update these later.</p>
+
+      <ul class="summary-list">
+        <li class="summary-item">
+          <span class="summary-key">Farm name</span>
+          <span class="summary-val" id="confirmFarmName">—</span>
+        </li>
+        <li class="summary-item">
+          <span class="summary-key">Region</span>
+          <span class="summary-val" id="confirmRegion">—</span>
+        </li>
+        <li class="summary-item">
+          <span class="summary-key">Herd size</span>
+          <span class="summary-val" id="confirmHerdSize">—</span>
+        </li>
+        <li class="summary-item">
+          <span class="summary-key">Farm type</span>
+          <span class="summary-val" id="confirmFarmType">—</span>
+        </li>
+      </ul>
+
+      <div id="step3Alert"></div>
+
+      <div class="wizard-nav">
+        <button class="btn btn-secondary" id="btnStep3Back">← Back</button>
+        <button class="btn btn-primary" id="btnRegisterFarm">Register farm</button>
+      </div>
+    </div>
+
   </section>
 
-  <!-- Farmer dashboard -->
+  <!-- ================================================================
+       DASHBOARD
+  ================================================================ -->
   <section id="sectionDashboard" class="section">
-    <h1 class="dash-title" id="dashFarmName">—</h1>
-    <p class="dash-meta" id="dashFarmMeta"></p>
+
+    <div class="dash-header">
+      <h1 class="dash-title" id="dashFarmName">—</h1>
+      <p class="dash-meta" id="dashFarmMeta"></p>
+    </div>
 
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-value" id="statMobs">—</div>
-        <div class="stat-label">Mobs</div>
+        <div class="stat-label">Mob Count</div>
       </div>
       <div class="stat-card">
         <div class="stat-value" id="statHead">—</div>
-        <div class="stat-label">Total head</div>
+        <div class="stat-label">Total Animals</div>
+      </div>
+      <div class="stat-card stat-card-wide">
+        <div class="stat-value-sm" id="statLastUpload">—</div>
+        <div class="stat-label">Last Upload</div>
       </div>
     </div>
 
     <div class="card">
       <h2>Mobs</h2>
-      <ul class="mob-list" id="mobList">
-        <li class="mob-item"><span style="color: var(--kp-ink-muted); font-size:13px;">Loading…</span></li>
-      </ul>
+      <div id="mobsContent">
+        <p style="font-size:13px; color: var(--kp-ink-muted); padding: 0.5rem 0; margin: 0;">Loading…</p>
+      </div>
     </div>
 
     <div class="card">
       <h2>Upload mob data</h2>
-      <p>CSV columns: <code>mob_name</code>, <code>breed</code>, <code>sex</code>, <code>drop_type</code>, <code>head_count</code>.</p>
+      <p>Upload your NAIT export CSV to add or update mob records on KaiProva.</p>
+      <div class="upload-spec">
+        <strong>Required columns:</strong>
+        <code>mob_name</code>, <code>breed</code>, <code>sex</code>, <code>drop_type</code>, <code>head_count</code>
+      </div>
       <div class="upload-zone" id="uploadZone">
-        <div class="upload-icon">📄</div>
-        <div class="upload-hint">Drop a CSV here, or click to browse</div>
+        <div class="upload-zone-icon">📄</div>
+        <div class="upload-zone-title">Drop CSV here, or click to browse</div>
+        <div class="upload-zone-hint">Accepts .csv files exported from NAIT</div>
       </div>
       <input type="file" id="fileInput" accept=".csv" style="display:none" />
       <div id="uploadAlert"></div>
     </div>
+
   </section>
 
 </main>
@@ -437,30 +785,27 @@ const SUPABASE_ANON_KEY = 'sb_publishable_FGT8ihbVKO7F9nPNQCsIFQ__ATCkcTA';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ---- UI helpers ----
 const $ = id => document.getElementById(id);
 const SECTIONS = ['sectionLogin', 'sectionMagicSent', 'sectionRegister', 'sectionDashboard'];
 
 function showSection(id) {
-  SECTIONS.forEach(s => $( s).classList.remove('visible'));
+  SECTIONS.forEach(s => $(s).classList.remove('visible'));
   $(id).classList.add('visible');
 }
 
 function setAlert(id, msg, type = 'info') {
-  $(id).innerHTML = msg
-    ? `<div class="alert alert-${type}">${msg}</div>`
-    : '';
+  $(id).innerHTML = msg ? `<div class="alert alert-${type}">${msg}</div>` : '';
 }
 
 // ---- State ----
 let currentSession = null;
 let currentFarm = null;
+let wizardData = {};
 
 // ---- Bootstrap ----
 async function init() {
   const { data: { session } } = await supabase.auth.getSession();
 
-  // Clean hash fragment left by magic link redirect
   if (window.location.hash.includes('access_token')) {
     window.history.replaceState({}, '', window.location.pathname);
   }
@@ -485,9 +830,10 @@ async function handleSession(session) {
   }
 
   $('siteHeader').classList.add('visible');
-
   currentFarm = await fetchFirstFarm(session.access_token);
+
   if (!currentFarm) {
+    resetWizard();
     showSection('sectionRegister');
   } else {
     showSection('sectionDashboard');
@@ -508,10 +854,14 @@ async function fetchFirstFarm(token) {
   }
 }
 
+// ---- Dashboard ----
 async function loadDashboard(farm, token) {
-  const typeLabel = (farm.farm_type || '').replace(/_/g, ' ');
   $('dashFarmName').textContent = farm.farm_name;
-  $('dashFarmMeta').textContent = `${farm.region} · ${typeLabel}`;
+  $('dashFarmMeta').textContent = `${farm.region} · ${farmTypeLabel(farm.farm_type)}`;
+
+  $('statMobs').textContent = '—';
+  $('statHead').textContent = '—';
+  $('statLastUpload').textContent = '—';
 
   const res = await fetch(`/api/farms/${farm.id}/animals`, {
     headers: { Authorization: `Bearer ${token}` }
@@ -521,28 +871,86 @@ async function loadDashboard(farm, token) {
 
   const totalHead = mobs.reduce((sum, m) => sum + (m.head_count || 0), 0);
   $('statMobs').textContent = mobs.length;
-  $('statHead').textContent = totalHead;
+  $('statHead').textContent = totalHead.toLocaleString();
 
-  const list = $('mobList');
+  const dates = mobs.map(m => m.updated_at || m.created_at).filter(Boolean);
+  if (dates.length > 0) {
+    const latest = new Date(Math.max(...dates.map(d => new Date(d))));
+    $('statLastUpload').textContent = formatRelativeDate(latest);
+  }
+
+  renderMobTable(mobs);
+}
+
+function formatRelativeDate(date) {
+  const diffDays = Math.floor((Date.now() - date) / 86400000);
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 30) return `${diffDays}d ago`;
+  return date.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' });
+}
+
+function renderMobTable(mobs) {
+  const container = $('mobsContent');
+
   if (mobs.length === 0) {
-    list.innerHTML = '<li class="mob-item"><span style="color: var(--kp-ink-muted); font-size:13px;">No mobs yet — upload a CSV to get started.</span></li>';
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🐄</div>
+        <div class="empty-title">No mobs yet</div>
+        <p class="empty-body">Upload your first NAIT export CSV below and your mobs will appear here.</p>
+      </div>`;
     return;
   }
 
-  list.innerHTML = mobs.map(mob => {
+  const rows = mobs.map(mob => {
     const meta = [mob.breed, mob.sex, mob.drop_type].filter(Boolean).join(' · ') || '—';
+    const weight = mob.avg_weight ? `${mob.avg_weight} kg avg` : null;
+    const updated = mob.updated_at
+      ? new Date(mob.updated_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })
+      : null;
     return `
-      <li class="mob-item">
-        <div>
-          <div class="mob-name">${escHtml(mob.mob_name)}</div>
-          <div class="mob-meta">${escHtml(meta)}</div>
-        </div>
-        <div>
-          <div class="mob-count">${mob.head_count || 0}</div>
-          <span class="mob-count-label">head</span>
-        </div>
-      </li>`;
+      <tr>
+        <td>
+          <div class="mob-name-cell">${escHtml(mob.mob_name)}</div>
+          ${weight ? `<div class="mob-meta-cell">${escHtml(weight)}</div>` : ''}
+        </td>
+        <td class="mob-meta-cell">${escHtml(meta)}</td>
+        <td class="align-right">
+          <div class="mob-count-val">${mob.head_count || 0}</div>
+          <div class="mob-count-sub">head</div>
+        </td>
+        <td class="align-right mob-meta-cell">${updated || '—'}</td>
+      </tr>`;
   }).join('');
+
+  container.innerHTML = `
+    <div class="mob-table-wrap">
+      <table class="mob-table">
+        <thead>
+          <tr>
+            <th>Mob name</th>
+            <th>Breed / type</th>
+            <th class="align-right">Animals</th>
+            <th class="align-right">Last updated</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function farmTypeLabel(type) {
+  const map = {
+    dairy: 'Dairy',
+    dairy_support: 'Dairy Support',
+    dairy_and_support: 'Dairy & Support',
+    dairy_birth: 'Dairy Birth Farm',
+    rearer: 'Rearer',
+    finisher: 'Finisher',
+    rearer_finisher: 'Rearer / Finisher',
+  };
+  return map[type] || (type || '').replace(/_/g, ' ');
 }
 
 function escHtml(str) {
@@ -552,6 +960,101 @@ function escHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
+
+// ---- Wizard ----
+function resetWizard() {
+  wizardData = {};
+  $('farmName').value = '';
+  $('farmRegion').value = '';
+  $('herdSize').value = '';
+  $('farmType').value = '';
+  setAlert('step1Alert', '');
+  setAlert('step2Alert', '');
+  setAlert('step3Alert', '');
+  goToWizardStep(1);
+}
+
+function goToWizardStep(n) {
+  $('wizardStepNum').textContent = n;
+  ['wstep1', 'wstep2', 'wstep3'].forEach((id, i) => {
+    const el = $(id);
+    el.classList.remove('active', 'done');
+    if (i + 1 < n) el.classList.add('done');
+    else if (i + 1 === n) el.classList.add('active');
+  });
+  $('wizardStep1').style.display = n === 1 ? '' : 'none';
+  $('wizardStep2').style.display = n === 2 ? '' : 'none';
+  $('wizardStep3').style.display = n === 3 ? '' : 'none';
+}
+
+$('btnStep1Next').addEventListener('click', () => {
+  const farm_name = $('farmName').value.trim();
+  const region = $('farmRegion').value;
+  if (!farm_name) return setAlert('step1Alert', 'Please enter your farm name.', 'error');
+  if (!region) return setAlert('step1Alert', 'Please select a region.', 'error');
+  setAlert('step1Alert', '');
+  wizardData.farm_name = farm_name;
+  wizardData.region = region;
+  goToWizardStep(2);
+});
+
+$('btnStep2Back').addEventListener('click', () => {
+  setAlert('step2Alert', '');
+  goToWizardStep(1);
+});
+
+$('btnStep2Next').addEventListener('click', () => {
+  const herd_size = parseInt($('herdSize').value, 10);
+  const farm_type = $('farmType').value;
+  if (!herd_size || herd_size < 1) return setAlert('step2Alert', 'Please enter your approximate herd size.', 'error');
+  if (!farm_type) return setAlert('step2Alert', 'Please select a farm type.', 'error');
+  setAlert('step2Alert', '');
+  wizardData.herd_size = herd_size;
+  wizardData.farm_type = farm_type;
+  $('confirmFarmName').textContent = wizardData.farm_name;
+  $('confirmRegion').textContent = wizardData.region;
+  $('confirmHerdSize').textContent = `~${wizardData.herd_size.toLocaleString()} animals`;
+  $('confirmFarmType').textContent = farmTypeLabel(wizardData.farm_type);
+  goToWizardStep(3);
+});
+
+$('btnStep3Back').addEventListener('click', () => {
+  setAlert('step3Alert', '');
+  goToWizardStep(2);
+});
+
+$('btnRegisterFarm').addEventListener('click', async () => {
+  const btn = $('btnRegisterFarm');
+  btn.disabled = true;
+  btn.textContent = 'Registering…';
+
+  const res = await fetch('/api/farms', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${currentSession.access_token}`
+    },
+    body: JSON.stringify({
+      farm_name: wizardData.farm_name,
+      region: wizardData.region,
+      farm_type: wizardData.farm_type,
+      herd_size: wizardData.herd_size
+    })
+  });
+
+  btn.disabled = false;
+  btn.textContent = 'Register farm';
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    return setAlert('step3Alert', err.error || 'Registration failed. Please try again.', 'error');
+  }
+
+  const farm = await res.json();
+  currentFarm = farm;
+  showSection('sectionDashboard');
+  loadDashboard(farm, currentSession.access_token);
+});
 
 // ---- Magic link login ----
 $('btnSendMagicLink').addEventListener('click', async () => {
@@ -575,58 +1078,15 @@ $('btnSendMagicLink').addEventListener('click', async () => {
   }
 });
 
-// Allow Enter key on email field
 $('loginEmail').addEventListener('keydown', e => {
   if (e.key === 'Enter') $('btnSendMagicLink').click();
 });
 
-// ---- Farm registration ----
-$('btnRegisterFarm').addEventListener('click', async () => {
-  const farm_name = $('farmName').value.trim();
-  const region = $('farmRegion').value;
-  const farm_type = $('farmType').value;
-
-  if (!farm_name || !region || !farm_type) {
-    return setAlert('registerAlert', 'Please fill in all fields.', 'error');
-  }
-
-  const btn = $('btnRegisterFarm');
-  btn.disabled = true;
-  btn.textContent = 'Registering…';
-
-  $('step1').classList.add('done');
-  $('step2').classList.add('active');
-
-  const res = await fetch('/api/farms', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${currentSession.access_token}`
-    },
-    body: JSON.stringify({ farm_name, region, farm_type })
-  });
-
-  btn.disabled = false;
-  btn.textContent = 'Register farm';
-
-  if (!res.ok) {
-    $('step1').classList.remove('done');
-    $('step2').classList.remove('active');
-    const err = await res.json().catch(() => ({}));
-    return setAlert('registerAlert', err.error || 'Registration failed. Please try again.', 'error');
-  }
-
-  $('step2').classList.add('done');
-  $('step3').classList.add('active', 'done');
-
-  const farm = await res.json();
-  currentFarm = farm;
-
-  // Brief pause so the user sees the completed steps
-  await new Promise(r => setTimeout(r, 400));
-
-  showSection('sectionDashboard');
-  loadDashboard(farm, currentSession.access_token);
+$('btnTryDifferentEmail').addEventListener('click', () => {
+  $('loginEmail').value = '';
+  setAlert('loginAlert', '');
+  showSection('sectionLogin');
+  setTimeout(() => $('loginEmail').focus(), 50);
 });
 
 // ---- CSV upload ----
@@ -634,11 +1094,7 @@ const uploadZone = $('uploadZone');
 const fileInput = $('fileInput');
 
 uploadZone.addEventListener('click', () => fileInput.click());
-
-uploadZone.addEventListener('dragover', e => {
-  e.preventDefault();
-  uploadZone.classList.add('dragover');
-});
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
 uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
 uploadZone.addEventListener('drop', e => {
   e.preventDefault();
@@ -653,7 +1109,6 @@ fileInput.addEventListener('change', () => {
 
 async function handleUpload(file) {
   setAlert('uploadAlert', 'Uploading…', 'info');
-
   const form = new FormData();
   form.append('file', file);
 
