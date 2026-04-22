@@ -93,6 +93,86 @@ app.post('/api/farms/:id/animals/upload', requireAuth, upload.single('file'), as
   if (farmError || !farm) return res.status(404).json({ error: 'Farm not found' });
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
+  // ── Livestock weighing/drafting export detection ──────────────────────────
+  // These files have metadata header lines (FileNo:, Name:, Date:) followed by
+  // one technical field-definition line, then the real column headers, then data.
+  const rawText = req.file.buffer.toString('utf8');
+  const allLines = rawText.split(/\r?\n/);
+  const metaPattern = /^(FileNo|Name|Date):/i;
+
+  let lineIndex = 0;
+  let metaName = null;
+
+  while (lineIndex < allLines.length && metaPattern.test(allLines[lineIndex])) {
+    const line = allLines[lineIndex];
+    const colonIdx = line.indexOf(':');
+    const key = line.slice(0, colonIdx).trim().toLowerCase();
+    // Strip trailing commas (metadata values are padded with commas to match column count)
+    const value = line.slice(colonIdx + 1).replace(/,+$/, '').trim();
+    if (key === 'name') metaName = value;
+    lineIndex++;
+  }
+
+  if (metaName !== null) {
+    // Livestock weighing format confirmed — skip the technical field-definition line
+    lineIndex++; // e.g. "F11EID(16)isID,DW2Weight(),..."
+
+    // Next line is the real column headers (EID, Weight, Draft, ...)
+    const headerLine = allLines[lineIndex];
+    lineIndex++;
+
+    // All remaining non-empty lines are animal data rows
+    const dataLines = allLines.slice(lineIndex).filter(l => l.trim() !== '');
+
+    let rows;
+    try {
+      rows = parse([headerLine, ...dataLines].join('\n'), {
+        columns: true,
+        skip_empty_lines: true,
+        trim: true
+      });
+    } catch (e) {
+      return res.status(400).json({ error: 'Invalid CSV format in data section' });
+    }
+
+    if (rows.length === 0) return res.status(400).json({ error: 'CSV contains no data rows' });
+
+    const head_count = rows.length;
+
+    // Average weight (skip zero / missing values)
+    const cols = Object.keys(rows[0]);
+    const weightCol = cols.find(c => /^weight$/i.test(c));
+    let avg_weight = null;
+    if (weightCol) {
+      const weights = rows
+        .map(r => parseFloat(r[weightCol]))
+        .filter(w => !isNaN(w) && w > 0);
+      if (weights.length > 0) {
+        avg_weight = Math.round((weights.reduce((a, b) => a + b, 0) / weights.length) * 10) / 10;
+      }
+    }
+
+    const mob = {
+      farm_id: req.params.id,
+      mob_name: metaName,
+      breed: null,
+      sex: null,
+      drop_type: null,
+      head_count,
+      ...(avg_weight !== null ? { avg_weight } : {})
+    };
+
+    const { data, error } = await getSupabase().from('mobs').insert([mob]).select();
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({
+      inserted: data.length,
+      mobs: data.map(m => ({ name: m.mob_name, head_count: m.head_count })),
+      total: head_count,
+      ...(avg_weight !== null ? { avg_weight } : {})
+    });
+  }
+
+  // ── Fallback: standard CSV (NAIT-style, group by Mob/Management Group column) ──
   let rows;
   try {
     rows = parse(req.file.buffer, { columns: true, skip_empty_lines: true, trim: true });
