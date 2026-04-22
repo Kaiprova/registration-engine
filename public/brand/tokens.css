@@ -1,0 +1,71 @@
+/* ================================================================
+   KaiProva — Brand tokens
+   Paddock & Sun identity · v1 · April 2026
+   Drop into global CSS (e.g. src/styles/brand.css) and import once.
+   ================================================================ */
+
+:root {
+  /* Pasture */
+  --kp-pasture-deep: #0E3F26;   /* primary ink on paper; reversed bg */
+  --kp-pasture-mid:  #1A6B42;   /* original brand green, back hill */
+  --kp-pasture-lit:  #1F8453;   /* hover / accent on dark */
+  --kp-pasture-night:#072A19;   /* extra-dark front hill on reversed */
+
+  /* Tussock */
+  --kp-gold:   #C3A76A;         /* sun, verification accent */
+  --kp-gold-2: #B0924F;         /* sun on kraft/cream */
+
+  /* Paper & Ink */
+  --kp-paper:   #F3EFE6;        /* default page background */
+  --kp-paper-2: #EBE5D6;        /* cream / recycled feel */
+  --kp-paper-3: #FBF8F0;        /* card surface */
+  --kp-ink:     #11221A;
+  --kp-ink-2:   #2A3E33;
+
+  /* Accent */
+  --kp-clay:    #D1581F;        /* restricted accent — warnings, live markers */
+
+  /* Type */
+  --kp-serif: "Fraunces", "Instrument Serif", Georgia, "Times New Roman", serif;
+  --kp-sans:  "Inter Tight", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --kp-mono:  "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Wordmark-specific tracking (matches the asset) */
+  --kp-wordmark-tracking: -0.025em;
+
+  /* Radius & rule */
+  --kp-radius-sm: 2px;
+  --kp-radius-md: 4px;
+  --kp-rule: color-mix(in srgb, var(--kp-ink) 14%, transparent);
+}
+
+/* Semantic aliases — what the platform consumes */
+:root {
+  --brand-bg:         var(--kp-paper);
+  --brand-surface:    var(--kp-paper-3);
+  --brand-ink:        var(--kp-ink);
+  --brand-ink-muted:  var(--kp-ink-2);
+  --brand-primary:    var(--kp-pasture-deep);
+  --brand-primary-2:  var(--kp-pasture-mid);
+  --brand-accent:     var(--kp-gold);
+  --brand-warn:       var(--kp-clay);
+  --brand-rule:       var(--kp-rule);
+}
+
+/* Wordmark utility — apply to any element that renders "KaiProva" */
+.kp-wordmark {
+  font-family: var(--kp-serif);
+  font-weight: 500;
+  letter-spacing: var(--kp-wordmark-tracking);
+  color: var(--kp-pasture-deep);
+  line-height: 0.95;
+}
+
+/* Mono utility — used for taglines, refs, certificate IDs */
+.kp-mono-caption {
+  font-family: var(--kp-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--kp-ink-2);
+}

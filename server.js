@@ -1,116 +1,157 @@
+'use strict';
+
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
-const db = require('./db');
-const { parseAnimalCSV } = require('./csv-validator');
- 
+const { parse } = require('csv-parse/sync');
+const { createClient } = require('@supabase/supabase-js');
+
+// Service role key bypasses RLS for server-side operations — never expose to frontend
+// Set SUPABASE_SERVICE_KEY in environment variables
+const supabase = createClient(
+  process.env.SUPABASE_URL || 'https://tafwprmxhwuhxckjdwdj.supabase.co',
+  process.env.SUPABASE_SERVICE_KEY
+);
+
 const app = express();
-const PORT = process.env.PORT || 3000;
- 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
- 
+app.use(express.static('public'));
+
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only CSV files are accepted'));
-    }
-  }
+  limits: { fileSize: 5 * 1024 * 1024 }
 });
- 
-app.post('/api/farms', (req, res) => {
-  const { farm_name, contact_name, email, phone, country, region, traceability_id, farm_type, calving_season, non_replacements_available, notes } = req.body;
-  const errors = [];
-  if (!farm_name) errors.push('Farm name is required');
-  if (!contact_name) errors.push('Contact name is required');
-  if (!email) errors.push('Email is required');
-  if (!country || !['NZ', 'AU'].includes(country)) errors.push('Country must be NZ or AU');
-  if (!region) errors.push('Region is required');
-  if (!traceability_id) errors.push(country === 'AU' ? 'NLIS PIC is required' : 'NAIT number is required');
-  if (!farm_type) errors.push('Farm type is required');
-  if (errors.length > 0) return res.status(400).json({ success: false, errors });
+
+async function requireAuth(req, res, next) {
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authorization header required' });
+  }
+  const token = auth.slice(7);
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  if (error || !user) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+  req.user = user;
+  next();
+}
+
+// POST /api/farms
+app.post('/api/farms', requireAuth, async (req, res) => {
+  const { farm_name, region, farm_type } = req.body;
+  if (!farm_name || !region || !farm_type) {
+    return res.status(400).json({ error: 'farm_name, region, and farm_type are required' });
+  }
+  const { data, error } = await supabase
+    .from('farms')
+    .insert({ farm_name, region, farm_type, owner_id: req.user.id })
+    .select()
+    .single();
+  if (error) return res.status(500).json({ error: error.message });
+  res.status(201).json(data);
+});
+
+// GET /api/farms
+app.get('/api/farms', requireAuth, async (req, res) => {
+  const { data, error } = await supabase
+    .from('farms')
+    .select('*, mobs(count)')
+    .eq('owner_id', req.user.id);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+// GET /api/farms/:id
+app.get('/api/farms/:id', requireAuth, async (req, res) => {
+  const { data, error } = await supabase
+    .from('farms')
+    .select('*, mobs(*)')
+    .eq('id', req.params.id)
+    .eq('owner_id', req.user.id)
+    .single();
+  if (error || !data) return res.status(404).json({ error: 'Farm not found' });
+  res.json(data);
+});
+
+// POST /api/farms/:id/animals/upload
+app.post('/api/farms/:id/animals/upload', requireAuth, upload.single('file'), async (req, res) => {
+  const { data: farm, error: farmError } = await supabase
+    .from('farms')
+    .select('id')
+    .eq('id', req.params.id)
+    .eq('owner_id', req.user.id)
+    .single();
+  if (farmError || !farm) return res.status(404).json({ error: 'Farm not found' });
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+  let rows;
   try {
-    const stmt = db.prepare('INSERT INTO farms (farm_name, contact_name, email, phone, country, region, traceability_id, farm_type, calving_season, non_replacements_available, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-    const result = stmt.run(farm_name, contact_name, email, phone || null, country, region, traceability_id, farm_type, calving_season || null, non_replacements_available ? parseInt(non_replacements_available) : null, notes || null);
-    res.json({ success: true, farm_id: result.lastInsertRowid, message: 'Farm registered successfully.' });
-  } catch (err) {
-    if (err.message.includes('UNIQUE')) return res.status(409).json({ success: false, errors: ['A farm with this traceability ID already exists'] });
-    console.error('Farm registration error:', err);
-    res.status(500).json({ success: false, errors: ['Internal server error'] });
+    rows = parse(req.file.buffer, { columns: true, skip_empty_lines: true, trim: true });
+  } catch (e) {
+    return res.status(400).json({ error: 'Invalid CSV format' });
   }
+
+  if (rows.length === 0) return res.status(400).json({ error: 'CSV contains no rows' });
+
+  const mobs = rows.map(row => ({
+    farm_id: req.params.id,
+    mob_name: row.mob_name || row.name || `Mob ${Date.now()}`,
+    breed: row.breed || null,
+    sex: row.sex || null,
+    drop_type: row.drop_type || null,
+    head_count: parseInt(row.head_count || row.count || '0', 10) || 0
+  }));
+
+  const { data, error } = await supabase.from('mobs').insert(mobs).select();
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ inserted: data.length, total: rows.length });
 });
- 
-app.get('/api/farms/:id', (req, res) => {
-  const farm = db.prepare('SELECT * FROM farms WHERE id = ?').get(req.params.id);
-  if (!farm) return res.status(404).json({ success: false, error: 'Farm not found' });
-  const mobs = db.prepare('SELECT * FROM mobs WHERE farm_id = ? ORDER BY created_at DESC').all(req.params.id);
-  const animalCount = db.prepare('SELECT COUNT(*) as count FROM animals WHERE farm_id = ?').get(req.params.id);
-  const uploads = db.prepare('SELECT * FROM csv_uploads WHERE farm_id = ? ORDER BY created_at DESC LIMIT 10').all(req.params.id);
-  res.json({ success: true, farm, mobs, total_animals: animalCount.count, recent_uploads: uploads });
+
+// GET /api/farms/:id/animals
+app.get('/api/farms/:id/animals', requireAuth, async (req, res) => {
+  const { data: farm, error: farmError } = await supabase
+    .from('farms')
+    .select('id')
+    .eq('id', req.params.id)
+    .eq('owner_id', req.user.id)
+    .single();
+  if (farmError || !farm) return res.status(404).json({ error: 'Farm not found' });
+
+  const { data, error } = await supabase
+    .from('mobs')
+    .select('*, weigh_events(*)')
+    .eq('farm_id', req.params.id);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
 });
- 
-app.post('/api/farms/:id/animals/upload', upload.single('csv'), (req, res) => {
-  const farm = db.prepare('SELECT * FROM farms WHERE id = ?').get(req.params.id);
-  if (!farm) return res.status(404).json({ success: false, error: 'Farm not found' });
-  if (!req.file) return res.status(400).json({ success: false, error: 'No CSV file uploaded' });
-  const csvContent = req.file.buffer.toString('utf-8');
-  const parseResult = parseAnimalCSV(csvContent, farm.country);
-  if (!parseResult.success) return res.status(400).json({ success: false, error: parseResult.error });
-  const insertAnimal = db.prepare('INSERT OR IGNORE INTO animals (farm_id, eid, vid, sex, breed, birth_date, birth_weight_kg, birth_farm_id, dam_eid, sire_breed, collection_date, collection_weight_kg, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-  let inserted = 0;
-  let duplicates = 0;
-  const insertMany = db.transaction((rows) => {
-    for (const result of rows) {
-      if (!result.valid || !result.data) continue;
-      const d = result.data;
-      try {
-        const r = insertAnimal.run(farm.id, d.eid, d.vid, d.sex, d.breed, d.birth_date, d.birth_weight_kg, d.birth_farm_id, d.dam_eid, d.sire_breed, d.collection_date, d.collection_weight_kg, d.notes);
-        if (r.changes > 0) inserted++;
-        else duplicates++;
-      } catch (err) { duplicates++; }
-    }
-  });
-  insertMany(parseResult.results);
-  const errorDetails = parseResult.results.filter(r => !r.valid).map(r => ({ row: r.row, errors: r.errors }));
-  db.prepare('INSERT INTO csv_uploads (farm_id, filename, upload_type, rows_total, rows_accepted, rows_rejected, errors) VALUES (?, ?, ?, ?, ?, ?, ?)').run(farm.id, req.file.originalname, 'animal_registration', parseResult.total, inserted, parseResult.rejected + duplicates, JSON.stringify(errorDetails));
-  res.json({ success: true, summary: { total_rows: parseResult.total, inserted, duplicates, rejected: parseResult.rejected } });
-});
- 
-app.get('/api/farms/:id/animals', (req, res) => {
-  const farm = db.prepare('SELECT * FROM farms WHERE id = ?').get(req.params.id);
-  if (!farm) return res.status(404).json({ success: false, error: 'Farm not found' });
-  const animals = db.prepare('SELECT a.*, m.mob_name FROM animals a LEFT JOIN mobs m ON a.mob_id = m.id WHERE a.farm_id = ? ORDER BY a.birth_date DESC').all(req.params.id);
-  const stats = db.prepare("SELECT COUNT(*) as total, SUM(CASE WHEN sex = 'bull' THEN 1 ELSE 0 END) as bulls, SUM(CASE WHEN sex = 'steer' THEN 1 ELSE 0 END) as steers, SUM(CASE WHEN sex = 'heifer' THEN 1 ELSE 0 END) as heifers, AVG(birth_weight_kg) as avg_birth_weight FROM animals WHERE farm_id = ?").get(req.params.id);
-  res.json({ success: true, animals, stats });
-});
- 
-app.get('/api/farms', (req, res) => {
-  const farms = db.prepare('SELECT f.*, (SELECT COUNT(*) FROM animals WHERE farm_id = f.id) as animal_count, (SELECT COUNT(*) FROM mobs WHERE farm_id = f.id) as mob_count FROM farms f ORDER BY f.created_at DESC').all();
-  res.json({ success: true, farms });
-});
- 
-app.get('/api/stats', (req, res) => {
-  try {
-    const farmCount = db.prepare('SELECT COUNT(*) as count FROM farms').get();
-    const animalCount = db.prepare('SELECT COUNT(*) as count FROM animals').get();
-    const nzFarms = db.prepare("SELECT COUNT(*) as count FROM farms WHERE country = 'NZ'").get();
-    const auFarms = db.prepare("SELECT COUNT(*) as count FROM farms WHERE country = 'AU'").get();
-    res.json({ success: true, stats: { total_farms: farmCount.count, total_animals: animalCount.count, nz_farms: nzFarms.count, au_farms: auFarms.count } });
-  } catch (err) {
-    console.error('Stats error:', err);
-    res.status(500).json({ success: false, error: 'Failed to load stats' });
+
+// GET /api/stats — returns only the authenticated farmer's own counts
+app.get('/api/stats', requireAuth, async (req, res) => {
+  const { count: farmCount, error: farmError } = await supabase
+    .from('farms')
+    .select('id', { count: 'exact', head: true })
+    .eq('owner_id', req.user.id);
+  if (farmError) return res.status(500).json({ error: farmError.message });
+
+  const { data: farms } = await supabase
+    .from('farms')
+    .select('id')
+    .eq('owner_id', req.user.id);
+
+  const farmIds = (farms || []).map(f => f.id);
+  let mobCount = 0;
+  if (farmIds.length > 0) {
+    const { count, error: mobError } = await supabase
+      .from('mobs')
+      .select('id', { count: 'exact', head: true })
+      .in('farm_id', farmIds);
+    if (mobError) return res.status(500).json({ error: mobError.message });
+    mobCount = count;
   }
+
+  res.json({ farms: farmCount, mobs: mobCount });
 });
- 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
- 
-app.listen(PORT, () => {
-  console.log('KaiProva registration engine running on port ' + PORT);
-});
+
+app.get('*', (_req, res) => res.sendFile('index.html', { root: 'public' }));
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`KaiProva server running on port ${PORT}`));

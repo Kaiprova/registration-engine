@@ -1,6 +1,6 @@
 {
   "name": "kaiprova-registration",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "KaiProva farmer registration engine",
   "main": "server.js",
   "scripts": {
@@ -9,9 +9,9 @@
   },
   "dependencies": {
     "express": "^4.18.2",
-    "better-sqlite3": "^11.0.0",
     "multer": "^1.4.5-lts.1",
-    "csv-parse": "^5.5.0"
+    "csv-parse": "^5.5.0",
+    "@supabase/supabase-js": "^2.45.0"
   },
   "engines": {
     "node": ">=18"

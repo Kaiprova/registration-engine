@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 120" role="img" aria-label="KaiProva mark (reversed)">
+  <title>KaiProva — reversed</title>
+  <rect width="180" height="120" fill="#0E3F26"></rect>
+  <circle cx="90" cy="58" r="28" fill="#C3A76A"></circle>
+  <path d="M0 88 Q 55 52 110 78 Q 150 96 180 80 L180 120 L0 120 Z" fill="#1F8453"></path>
+  <path d="M0 104 Q 48 80 96 96 Q 148 112 180 100 L180 120 L0 120 Z" fill="#072A19"></path>
+  <line x1="0" y1="58" x2="62" y2="58" stroke="#F3EFE6" stroke-width="1.2" opacity="0.6"></line>
+  <line x1="118" y1="58" x2="180" y2="58" stroke="#F3EFE6" stroke-width="1.2" opacity="0.6"></line>
+</svg>

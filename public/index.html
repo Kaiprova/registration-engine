@@ -1,604 +1,686 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KaiProva — Farmer Registration</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
-<style>
-:root {
-  --green-900:#14332a;--green-800:#1a4d3a;--green-700:#1f6b4e;--green-600:#2a8a63;
-  --green-500:#3aaa7a;--green-400:#5cc496;--green-300:#8edad0;--green-200:#c0edda;
-  --green-100:#e4f7ed;--green-50:#f2fbf6;
-  --gray-900:#1a1a1a;--gray-800:#2d2d2d;--gray-700:#444;--gray-600:#666;
-  --gray-500:#888;--gray-400:#aaa;--gray-300:#ccc;--gray-200:#e2e2e2;
-  --gray-100:#f0f0f0;--gray-50:#f8f8f8;
-  --honey:#d4a843;--honey-light:#e8c96e;
-  --red:#c0392b;--red-light:#fdf0ef;
-  --blue:#2980b9;--blue-light:#ebf5fb;
-  --white:#fff;
-  --font: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-  --radius: 10px;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);background:var(--gray-50);color:var(--gray-900);min-height:100vh}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KaiProva — Farmer Platform</title>
 
-/* NAV */
-.nav{background:var(--green-900);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
-.nav-brand{color:var(--white);font-weight:700;font-size:17px;letter-spacing:-0.02em;display:flex;align-items:center;gap:8px}
-.nav-brand svg{width:24px;height:24px}
-.nav-tag{font-size:10px;background:rgba(255,255,255,0.12);color:var(--green-300);padding:3px 8px;border-radius:100px;font-weight:600;letter-spacing:0.04em}
-.nav-right{display:flex;align-items:center;gap:16px}
-.nav-link{color:rgba(255,255,255,0.65);font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;transition:color 0.15s}
-.nav-link:hover,.nav-link.active{color:var(--white)}
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/brand/favicon-16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/brand/favicon-180.png" />
 
-/* LAYOUT */
-.container{max-width:860px;margin:0 auto;padding:32px 24px}
-.page-title{font-size:26px;font-weight:700;color:var(--green-900);margin-bottom:6px}
-.page-sub{font-size:14px;color:var(--gray-600);margin-bottom:28px}
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet" />
 
-/* CARDS */
-.card{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray-200);box-shadow:var(--shadow-sm);padding:28px;margin-bottom:20px}
-.card-title{font-size:16px;font-weight:700;color:var(--green-900);margin-bottom:4px}
-.card-sub{font-size:13px;color:var(--gray-500);margin-bottom:20px}
+  <!-- KaiProva brand tokens -->
+  <link rel="stylesheet" href="/brand/tokens.css" />
 
-/* FORMS */
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.form-group{display:flex;flex-direction:column;gap:5px}
-.form-group.full{grid-column:1/-1}
-label{font-size:12px;font-weight:600;color:var(--gray-700);letter-spacing:0.02em}
-input,select,textarea{font-family:var(--font);font-size:14px;padding:10px 12px;border:1px solid var(--gray-300);border-radius:7px;background:var(--white);color:var(--gray-900);transition:border-color 0.15s,box-shadow 0.15s;outline:none}
-input:focus,select:focus,textarea:focus{border-color:var(--green-500);box-shadow:0 0 0 3px rgba(58,170,122,0.12)}
-textarea{resize:vertical;min-height:70px}
-.hint{font-size:11px;color:var(--gray-500)}
+  <style>
+    :root {
+      --kp-pasture-deep: #0E3F26;
+      --kp-pasture-mid: #1A6B42;
+      --kp-pasture-lit: #1F8453;
+      --kp-gold: #C3A76A;
+      --kp-gold-kraft: #B0924F;
+      --kp-paper: #F3EFE6;
+      --kp-paper-surface: #FBF8F0;
+      --kp-ink: #11221A;
+      --kp-ink-muted: #2A3E33;
+      --kp-border: #D5CFC4;
+      --kp-radius: 10px;
+      --kp-serif: 'Fraunces', Georgia, serif;
+      --kp-sans: 'Inter Tight', system-ui, sans-serif;
+    }
 
-/* BUTTONS */
-.btn{font-family:var(--font);font-size:14px;font-weight:600;padding:11px 24px;border-radius:7px;border:none;cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:8px}
-.btn-primary{background:var(--green-700);color:var(--white)}
-.btn-primary:hover{background:var(--green-800)}
-.btn-secondary{background:var(--gray-100);color:var(--gray-700);border:1px solid var(--gray-300)}
-.btn-secondary:hover{background:var(--gray-200)}
-.btn:disabled{opacity:0.5;cursor:not-allowed}
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* UPLOAD ZONE */
-.upload-zone{border:2px dashed var(--gray-300);border-radius:var(--radius);padding:40px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--gray-50)}
-.upload-zone:hover,.upload-zone.dragover{border-color:var(--green-500);background:var(--green-50)}
-.upload-zone svg{margin-bottom:12px;color:var(--gray-400)}
-.upload-zone p{font-size:14px;color:var(--gray-600);margin-bottom:4px}
-.upload-zone .hint{margin-top:4px}
-.upload-zone input[type="file"]{display:none}
+    body {
+      font-family: var(--kp-sans);
+      background: var(--kp-paper);
+      color: var(--kp-ink);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
 
-/* TABLE */
-.table-wrap{overflow-x:auto;margin-top:16px}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;padding:10px 12px;background:var(--gray-50);border-bottom:2px solid var(--gray-200);font-weight:600;color:var(--gray-700);font-size:11px;text-transform:uppercase;letter-spacing:0.04em}
-td{padding:10px 12px;border-bottom:1px solid var(--gray-100);color:var(--gray-800)}
-tr:hover td{background:var(--green-50)}
+    /* ---- Header ---- */
+    .site-header {
+      background: var(--kp-pasture-deep);
+      padding: 0 2rem;
+      height: 60px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .site-header.visible { display: flex; }
 
-/* STATS */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-.stat-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:16px;text-align:center}
-.stat-num{font-size:28px;font-weight:700;color:var(--green-800)}
-.stat-label{font-size:11px;color:var(--gray-500);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-top:2px}
+    .header-logo img { height: 30px; display: block; }
 
-/* ALERTS */
-.alert{padding:14px 18px;border-radius:8px;font-size:13px;margin-bottom:16px;display:flex;align-items:flex-start;gap:10px}
-.alert-success{background:var(--green-100);color:var(--green-800);border:1px solid var(--green-200)}
-.alert-error{background:var(--red-light);color:var(--red);border:1px solid #f5c6cb}
-.alert-info{background:var(--blue-light);color:var(--blue);border:1px solid #bee5eb}
+    .btn-signout {
+      background: transparent;
+      color: var(--kp-gold);
+      border: 1px solid var(--kp-gold);
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-family: var(--kp-sans);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-signout:hover { background: rgba(195, 167, 106, 0.15); }
 
-/* BADGE */
-.badge{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px;letter-spacing:0.02em}
-.badge-nz{background:#e8f5ee;color:#1a6b42}
-.badge-au{background:#fff3cd;color:#856404}
-.badge-bull{background:#e8f0fe;color:#1a56db}
-.badge-steer{background:#f3e8ff;color:#7c3aed}
-.badge-heifer{background:#fce7f3;color:#be185d}
+    /* ---- Layout ---- */
+    .main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+    }
 
-/* TABS */
-.tabs{display:flex;gap:4px;margin-bottom:24px;border-bottom:2px solid var(--gray-200);padding-bottom:0}
-.tab{padding:10px 18px;font-size:13px;font-weight:600;color:var(--gray-500);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s}
-.tab:hover{color:var(--gray-800)}
-.tab.active{color:var(--green-700);border-bottom-color:var(--green-700)}
+    /* ---- Cards ---- */
+    .card {
+      background: var(--kp-paper-surface);
+      border-radius: var(--kp-radius);
+      padding: 2rem;
+      border: 1px solid var(--kp-border);
+      margin-bottom: 1.5rem;
+    }
 
-/* RESULTS */
-.result-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-100);font-size:13px}
-.result-row:last-child{border-bottom:none}
-.result-label{color:var(--gray-600)}
-.result-value{font-weight:600}
+    /* ---- Typography ---- */
+    h1 {
+      font-family: var(--kp-serif);
+      font-weight: 500;
+      font-size: 2rem;
+      color: var(--kp-pasture-deep);
+      margin-bottom: 0.4rem;
+      letter-spacing: -0.02em;
+    }
+    h2 {
+      font-family: var(--kp-serif);
+      font-weight: 500;
+      font-size: 1.35rem;
+      color: var(--kp-pasture-deep);
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.01em;
+    }
+    p {
+      color: var(--kp-ink-muted);
+      line-height: 1.6;
+      font-size: 14px;
+      margin-bottom: 0.75rem;
+    }
+    p:last-child { margin-bottom: 0; }
 
-/* HERO */
-.hero{background:linear-gradient(135deg,var(--green-900) 0%,var(--green-800) 100%);padding:48px 24px;text-align:center;color:var(--white)}
-.hero h1{font-size:32px;font-weight:700;margin-bottom:8px}
-.hero p{font-size:15px;color:rgba(255,255,255,0.75);max-width:520px;margin:0 auto 24px}
-.hero .btn{font-size:16px;padding:14px 32px;background:var(--honey);color:var(--green-900)}
-.hero .btn:hover{background:var(--honey-light)}
+    /* ---- Form elements ---- */
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--kp-ink-muted);
+      margin-bottom: 5px;
+      margin-top: 1.1rem;
+    }
+    label:first-of-type { margin-top: 0.5rem; }
 
-/* STEP INDICATOR */
-.steps{display:flex;gap:0;margin-bottom:28px}
-.step{flex:1;text-align:center;padding:12px;font-size:12px;font-weight:600;color:var(--gray-400);position:relative}
-.step::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--gray-200);border-radius:3px}
-.step.active{color:var(--green-700)}
-.step.active::after{background:var(--green-600)}
-.step.done{color:var(--green-500)}
-.step.done::after{background:var(--green-500)}
-.step-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--gray-200);color:var(--gray-500);font-size:11px;font-weight:700;margin-bottom:4px}
-.step.active .step-num{background:var(--green-600);color:var(--white)}
-.step.done .step-num{background:var(--green-500);color:var(--white)}
+    input[type="email"],
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 10px 13px;
+      border: 1px solid var(--kp-border);
+      border-radius: 6px;
+      font-family: var(--kp-sans);
+      font-size: 14px;
+      background: white;
+      color: var(--kp-ink);
+      appearance: none;
+      transition: border-color 0.15s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--kp-pasture-mid);
+      box-shadow: 0 0 0 3px rgba(26, 107, 66, 0.1);
+    }
 
-@media(max-width:640px){
-  .form-grid{grid-template-columns:1fr}
-  .stats-grid{grid-template-columns:1fr 1fr}
-  .hero h1{font-size:24px}
-}
+    /* ---- Buttons ---- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-family: var(--kp-sans);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s, background 0.15s;
+      text-decoration: none;
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.hidden{display:none!important}
-</style>
+    .btn-primary {
+      background: var(--kp-pasture-mid);
+      color: white;
+      width: 100%;
+      margin-top: 1.25rem;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--kp-pasture-deep); }
+
+    /* ---- Alerts ---- */
+    .alert {
+      padding: 11px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-top: 0.75rem;
+      line-height: 1.5;
+    }
+    .alert-success { background: #E6F2EC; color: #0A3520; border: 1px solid #A8D5B5; }
+    .alert-error   { background: #FEF0EB; color: #8B2200; border: 1px solid #F5C0A0; }
+    .alert-info    { background: #EEF4FB; color: #1A3E6B; border: 1px solid #AACBE8; }
+
+    /* ---- Step indicator ---- */
+    .steps {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 1.75rem;
+    }
+    .step {
+      flex: 1;
+      height: 3px;
+      background: var(--kp-border);
+      border-radius: 2px;
+      transition: background 0.2s;
+    }
+    .step.active, .step.done { background: var(--kp-pasture-mid); }
+
+    /* ---- Login hero ---- */
+    .login-hero {
+      text-align: center;
+      padding: 2rem 0 0.25rem;
+    }
+    .login-hero img {
+      height: 44px;
+      margin-bottom: 1.5rem;
+    }
+    .login-hero p {
+      font-size: 15px;
+      color: var(--kp-ink-muted);
+    }
+
+    /* ---- Dashboard ---- */
+    .dash-title { margin-bottom: 0.25rem; }
+    .dash-meta {
+      font-size: 14px;
+      color: var(--kp-ink-muted);
+      margin-bottom: 1.75rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: var(--kp-paper-surface);
+      border: 1px solid var(--kp-border);
+      border-radius: var(--kp-radius);
+      padding: 1.25rem 1.5rem;
+    }
+    .stat-value {
+      font-family: var(--kp-serif);
+      font-size: 2.25rem;
+      font-weight: 500;
+      color: var(--kp-pasture-mid);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--kp-ink-muted);
+      margin-top: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 600;
+    }
+
+    /* ---- Mob list ---- */
+    .mob-list { list-style: none; }
+    .mob-item {
+      padding: 13px 0;
+      border-bottom: 1px solid var(--kp-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .mob-item:last-child { border-bottom: none; }
+    .mob-name { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+    .mob-meta { font-size: 12px; color: var(--kp-ink-muted); }
+    .mob-count {
+      font-family: var(--kp-serif);
+      font-size: 1.5rem;
+      font-weight: 500;
+      color: var(--kp-pasture-mid);
+      text-align: right;
+    }
+    .mob-count-label {
+      font-size: 11px;
+      color: var(--kp-ink-muted);
+      font-family: var(--kp-sans);
+      display: block;
+      text-align: right;
+    }
+
+    /* ---- Upload zone ---- */
+    .upload-zone {
+      border: 2px dashed var(--kp-border);
+      border-radius: var(--kp-radius);
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      margin-top: 0.75rem;
+    }
+    .upload-zone:hover,
+    .upload-zone.dragover {
+      border-color: var(--kp-pasture-mid);
+      background: rgba(26, 107, 66, 0.04);
+    }
+    .upload-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .upload-hint { font-size: 13px; color: var(--kp-ink-muted); }
+
+    /* ---- Section visibility ---- */
+    .section { display: none; }
+    .section.visible { display: block; }
+
+    /* ---- Magic link sent ---- */
+    .sent-card {
+      text-align: center;
+      padding: 3rem 2rem;
+    }
+    .sent-icon { font-size: 3rem; margin-bottom: 1rem; }
+  </style>
 </head>
 <body>
 
-<nav class="nav">
-  <div class="nav-brand">
-    <svg viewBox="0 0 28 28" fill="none"><path d="M6 20V10l8-6 8 6v10l-8 4-8-4z" stroke="#fff" stroke-width="2" fill="none"/><path d="M14 8v8M10 12h8" stroke="#fff" stroke-width="1.5"/></svg>
-    KaiProva
-    <span class="nav-tag">Registration</span>
+<!-- ---- Site header (shown when authenticated) ---- -->
+<header class="site-header" id="siteHeader">
+  <div class="header-logo">
+    <img src="/brand/kaiprova-horizontal.svg" alt="KaiProva" />
   </div>
-  <div class="nav-right">
-    <a class="nav-link active" onclick="showPage('home')">Register</a>
-    <a class="nav-link" onclick="showPage('dashboard')">My Farm</a>
-  </div>
-</nav>
+  <button class="btn-signout" id="btnSignOut">Sign out</button>
+</header>
 
-<!-- ═══ HOME / REGISTER ═══ -->
-<div id="page-home">
-  <div class="hero">
-    <h1>Register your farm with KaiProva</h1>
-    <p>Join the verified low-carbon beef platform. Enrol your supply, upload your animal data, and unlock premium market access.</p>
-    <button class="btn" onclick="showPage('register')">Start Registration →</button>
-  </div>
+<main class="main" id="app">
 
-  <div class="container">
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-top:-40px">
-      <div class="card" style="text-align:center">
-        <div style="font-size:28px;margin-bottom:8px">📋</div>
-        <div class="card-title">1. Register</div>
-        <p style="font-size:13px;color:var(--gray-600)">Enter your farm details, location, and traceability ID</p>
-      </div>
-      <div class="card" style="text-align:center">
-        <div style="font-size:28px;margin-bottom:8px">📁</div>
-        <div class="card-title">2. Upload</div>
-        <p style="font-size:13px;color:var(--gray-600)">Upload your animal CSV — we validate and group into mobs</p>
-      </div>
-      <div class="card" style="text-align:center">
-        <div style="font-size:28px;margin-bottom:8px">✅</div>
-        <div class="card-title">3. Verify</div>
-        <p style="font-size:13px;color:var(--gray-600)">Every animal gets a verified carbon footprint from birth</p>
-      </div>
+  <!-- Login -->
+  <section id="sectionLogin" class="section visible">
+    <div class="login-hero">
+      <img src="/brand/kaiprova-horizontal.svg" alt="KaiProva" />
+      <h1>Farmer Platform</h1>
+      <p>Verified supply, coordinated across the value chain.</p>
     </div>
-  </div>
-</div>
+    <div class="card" style="margin-top: 1.5rem;">
+      <h2>Sign in</h2>
+      <p>Enter your email and we'll send you a magic link — no password needed.</p>
+      <label for="loginEmail">Email address</label>
+      <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email" />
+      <div id="loginAlert"></div>
+      <button class="btn btn-primary" id="btnSendMagicLink">Send magic link</button>
+    </div>
+  </section>
 
-<!-- ═══ REGISTER FORM ═══ -->
-<div id="page-register" class="hidden">
-  <div class="container">
+  <!-- Magic link sent -->
+  <section id="sectionMagicSent" class="section">
+    <div class="card sent-card">
+      <div class="sent-icon">📬</div>
+      <h2>Check your email</h2>
+      <p>We sent a magic link to <strong id="magicLinkEmail"></strong>.<br />Click it to sign in to your farm.</p>
+    </div>
+  </section>
+
+  <!-- Farm registration -->
+  <section id="sectionRegister" class="section">
     <div class="steps">
-      <div class="step active" id="step1-indicator"><div class="step-num">1</div><br>Farm Details</div>
-      <div class="step" id="step2-indicator"><div class="step-num">2</div><br>Upload Animals</div>
-      <div class="step" id="step3-indicator"><div class="step-num">3</div><br>Confirmation</div>
+      <div class="step active" id="step1"></div>
+      <div class="step" id="step2"></div>
+      <div class="step" id="step3"></div>
     </div>
-
-    <!-- Step 1: Farm Details -->
-    <div id="step1" class="card">
-      <div class="card-title">Farm Details</div>
-      <div class="card-sub">Tell us about your operation. Fields marked * are required.</div>
-
-      <div id="farm-errors"></div>
-
-      <form id="farm-form" onsubmit="submitFarm(event)">
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Farm Name *</label>
-            <input type="text" name="farm_name" required placeholder="e.g. Riverstone Dairy">
-          </div>
-          <div class="form-group">
-            <label>Contact Name *</label>
-            <input type="text" name="contact_name" required placeholder="Full name">
-          </div>
-          <div class="form-group">
-            <label>Email *</label>
-            <input type="email" name="email" required placeholder="farmer@example.com">
-          </div>
-          <div class="form-group">
-            <label>Phone</label>
-            <input type="tel" name="phone" placeholder="027 123 4567">
-          </div>
-          <div class="form-group">
-            <label>Country *</label>
-            <select name="country" required onchange="updateCountryFields(this.value)">
-              <option value="">Select country</option>
-              <option value="NZ">New Zealand</option>
-              <option value="AU">Australia</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Region *</label>
-            <input type="text" name="region" required placeholder="e.g. Canterbury">
-          </div>
-          <div class="form-group">
-            <label id="traceability-label">NAIT Number / NLIS PIC *</label>
-            <input type="text" name="traceability_id" required placeholder="e.g. 47-1234" id="traceability-input">
-            <span class="hint" id="traceability-hint">Your property traceability identifier</span>
-          </div>
-          <div class="form-group">
-            <label>Farm Type *</label>
-            <select name="farm_type" required>
-              <option value="">Select type</option>
-              <option value="dairy_birth">Dairy (birth farm)</option>
-              <option value="rearer">Calf Rearer</option>
-              <option value="finisher">Finisher</option>
-              <option value="rearer_finisher">Rearer-Finisher</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Primary Calving Season</label>
-            <select name="calving_season">
-              <option value="">Select season</option>
-              <option value="spring">Spring</option>
-              <option value="autumn">Autumn</option>
-              <option value="split">Split (both)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Non-Replacements Available (head/season)</label>
-            <input type="number" name="non_replacements_available" placeholder="e.g. 200" min="0">
-            <span class="hint">How many surplus calves available per calving season</span>
-          </div>
-          <div class="form-group full">
-            <label>Notes</label>
-            <textarea name="notes" placeholder="Anything else we should know about your operation..."></textarea>
-          </div>
-        </div>
-        <div style="margin-top:20px;display:flex;gap:12px;justify-content:flex-end">
-          <button type="button" class="btn btn-secondary" onclick="showPage('home')">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="farm-submit-btn">Register Farm →</button>
-        </div>
-      </form>
+    <div class="card">
+      <h2>Register your farm</h2>
+      <p>Tell us about your operation to get started on KaiProva.</p>
+      <label for="farmName">Farm name</label>
+      <input type="text" id="farmName" placeholder="e.g. Greenacre Station" autocomplete="off" />
+      <label for="farmRegion">Region</label>
+      <select id="farmRegion">
+        <option value="">Select region…</option>
+        <option>Northland</option>
+        <option>Auckland</option>
+        <option>Waikato</option>
+        <option>Bay of Plenty</option>
+        <option>Gisborne</option>
+        <option>Hawke's Bay</option>
+        <option>Taranaki</option>
+        <option>Manawatū-Whanganui</option>
+        <option>Wellington</option>
+        <option>Tasman</option>
+        <option>Nelson</option>
+        <option>Marlborough</option>
+        <option>West Coast</option>
+        <option>Canterbury</option>
+        <option>Otago</option>
+        <option>Southland</option>
+      </select>
+      <label for="farmType">Farm type</label>
+      <select id="farmType">
+        <option value="">Select type…</option>
+        <option value="dairy_birth">Dairy birth farm</option>
+        <option value="rearer">Rearer</option>
+        <option value="finisher">Finisher</option>
+        <option value="rearer_finisher">Rearer / Finisher</option>
+      </select>
+      <div id="registerAlert"></div>
+      <button class="btn btn-primary" id="btnRegisterFarm">Register farm</button>
     </div>
+  </section>
 
-    <!-- Step 2: Upload Animals -->
-    <div id="step2" class="hidden card">
-      <div class="card-title">Upload Animal Data</div>
-      <div class="card-sub">Upload a CSV file with your animal records. <a href="/templates/animal_registration_nz.csv" download style="color:var(--green-600)">Download NZ template</a> · <a href="/templates/animal_registration_au.csv" download style="color:var(--green-600)">Download AU template</a></div>
+  <!-- Farmer dashboard -->
+  <section id="sectionDashboard" class="section">
+    <h1 class="dash-title" id="dashFarmName">—</h1>
+    <p class="dash-meta" id="dashFarmMeta"></p>
 
-      <div id="upload-errors"></div>
-
-      <div class="upload-zone" id="drop-zone" onclick="document.getElementById('csv-input').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
-        <p>Drop your CSV file here, or click to browse</p>
-        <span class="hint">Accepts .csv files up to 5MB — one row per animal</span>
-        <input type="file" id="csv-input" accept=".csv" onchange="handleFileSelect(this.files[0])">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="statMobs">—</div>
+        <div class="stat-label">Mobs</div>
       </div>
-
-      <div id="upload-preview" class="hidden" style="margin-top:20px">
-        <div id="upload-result"></div>
-      </div>
-
-      <div style="margin-top:20px;display:flex;gap:12px;justify-content:space-between">
-        <button class="btn btn-secondary" onclick="showStep(1)">← Back</button>
-        <div style="display:flex;gap:12px">
-          <button class="btn btn-secondary" onclick="showStep(3)">Skip for now</button>
-          <button class="btn btn-primary hidden" id="upload-continue-btn" onclick="showStep(3)">Continue →</button>
-        </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statHead">—</div>
+        <div class="stat-label">Total head</div>
       </div>
     </div>
 
-    <!-- Step 3: Confirmation -->
-    <div id="step3" class="hidden card">
-      <div class="card-title">Registration Complete</div>
-      <div class="card-sub">Your farm is now enrolled in KaiProva.</div>
-
-      <div class="alert alert-success">
-        <span>✅</span>
-        <div>
-          <strong>Welcome to KaiProva.</strong><br>
-          Your farm has been registered. You can upload animal data at any time, and we'll begin carbon verification once your first weigh records are in.
-        </div>
-      </div>
-
-      <div id="confirmation-details" style="margin-top:16px"></div>
-
-      <div style="margin-top:24px;display:flex;gap:12px">
-        <button class="btn btn-primary" onclick="showPage('dashboard')">Go to My Farm →</button>
-        <button class="btn btn-secondary" onclick="showPage('home')">Back to Home</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ DASHBOARD ═══ -->
-<div id="page-dashboard" class="hidden">
-  <div class="container">
-    <div class="page-title" id="dash-title">My Farm</div>
-    <div class="page-sub" id="dash-sub">Farm dashboard — view your animals and upload data</div>
-
-    <div id="no-farm-msg" class="hidden">
-      <div class="alert alert-info">
-        <span>ℹ️</span>
-        <div>You haven't registered a farm yet. <a href="#" onclick="showPage('register');return false" style="color:var(--blue);font-weight:600">Register now →</a></div>
-      </div>
+    <div class="card">
+      <h2>Mobs</h2>
+      <ul class="mob-list" id="mobList">
+        <li class="mob-item"><span style="color: var(--kp-ink-muted); font-size:13px;">Loading…</span></li>
+      </ul>
     </div>
 
-    <div id="dash-content" class="hidden">
-      <div class="stats-grid" id="dash-stats"></div>
-
-      <div class="tabs">
-        <div class="tab active" onclick="showDashTab('animals',this)">Animals</div>
-        <div class="tab" onclick="showDashTab('upload',this)">Upload CSV</div>
-        <div class="tab" onclick="showDashTab('history',this)">Upload History</div>
+    <div class="card">
+      <h2>Upload mob data</h2>
+      <p>CSV columns: <code>mob_name</code>, <code>breed</code>, <code>sex</code>, <code>drop_type</code>, <code>head_count</code>.</p>
+      <div class="upload-zone" id="uploadZone">
+        <div class="upload-icon">📄</div>
+        <div class="upload-hint">Drop a CSV here, or click to browse</div>
       </div>
-
-      <div id="dash-animals"></div>
-      <div id="dash-upload" class="hidden">
-        <div class="card">
-          <div class="card-title">Upload More Animals</div>
-          <div class="card-sub">Add more animals to your farm by uploading a CSV file.</div>
-          <div class="upload-zone" onclick="document.getElementById('dash-csv-input').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDashDrop(event)">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
-            <p>Drop CSV here or click to browse</p>
-            <input type="file" id="dash-csv-input" accept=".csv" onchange="handleDashUpload(this.files[0])">
-          </div>
-          <div id="dash-upload-result" style="margin-top:16px"></div>
-        </div>
-      </div>
-      <div id="dash-history" class="hidden"></div>
+      <input type="file" id="fileInput" accept=".csv" style="display:none" />
+      <div id="uploadAlert"></div>
     </div>
-  </div>
-</div>
+  </section>
 
-<script>
-// ═══ STATE ═══
-let currentFarmId = localStorage.getItem('kp_farm_id') || null;
+</main>
 
-// ═══ NAVIGATION ═══
-function showPage(page) {
-  ['home','register','dashboard'].forEach(p =>
-    document.getElementById('page-'+p).classList.toggle('hidden', p !== page));
-  document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-  if (page === 'register') { showStep(1); }
-  if (page === 'dashboard') {
-    document.querySelectorAll('.nav-link')[1].classList.add('active');
-    loadDashboard();
-  } else {
-    document.querySelectorAll('.nav-link')[0].classList.add('active');
-  }
+const SUPABASE_URL = 'https://tafwprmxhwuhxckjdwdj.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_FGT8ihbVKO7F9nPNQCsIFQ__ATCkcTA';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ---- UI helpers ----
+const $ = id => document.getElementById(id);
+const SECTIONS = ['sectionLogin', 'sectionMagicSent', 'sectionRegister', 'sectionDashboard'];
+
+function showSection(id) {
+  SECTIONS.forEach(s => $( s).classList.remove('visible'));
+  $(id).classList.add('visible');
 }
 
-function showStep(n) {
-  [1,2,3].forEach(i => {
-    document.getElementById('step'+i).classList.toggle('hidden', i !== n);
-    const ind = document.getElementById('step'+i+'-indicator');
-    ind.classList.toggle('active', i === n);
-    ind.classList.toggle('done', i < n);
+function setAlert(id, msg, type = 'info') {
+  $(id).innerHTML = msg
+    ? `<div class="alert alert-${type}">${msg}</div>`
+    : '';
+}
+
+// ---- State ----
+let currentSession = null;
+let currentFarm = null;
+
+// ---- Bootstrap ----
+async function init() {
+  const { data: { session } } = await supabase.auth.getSession();
+
+  // Clean hash fragment left by magic link redirect
+  if (window.location.hash.includes('access_token')) {
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+
+  await handleSession(session);
+
+  supabase.auth.onAuthStateChange(async (_event, session) => {
+    if (window.location.hash.includes('access_token')) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    await handleSession(session);
   });
 }
 
-// ═══ COUNTRY FIELDS ═══
-function updateCountryFields(country) {
-  const label = document.getElementById('traceability-label');
-  const input = document.getElementById('traceability-input');
-  const hint = document.getElementById('traceability-hint');
-  if (country === 'AU') {
-    label.textContent = 'NLIS PIC *';
-    input.placeholder = 'e.g. 3ABCD1234';
-    hint.textContent = 'Your NLIS Property Identification Code';
-  } else {
-    label.textContent = 'NAIT Number *';
-    input.placeholder = 'e.g. 47-1234';
-    hint.textContent = 'Your NAIT location number';
-  }
-}
+async function handleSession(session) {
+  currentSession = session;
 
-// ═══ FARM REGISTRATION ═══
-async function submitFarm(e) {
-  e.preventDefault();
-  const btn = document.getElementById('farm-submit-btn');
-  btn.disabled = true;
-  btn.textContent = 'Registering...';
-
-  const form = new FormData(e.target);
-  const data = Object.fromEntries(form);
-
-  try {
-    const res = await fetch('/api/farms', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(data)
-    });
-    const json = await res.json();
-
-    if (json.success) {
-      currentFarmId = json.farm_id;
-      localStorage.setItem('kp_farm_id', json.farm_id);
-      document.getElementById('farm-errors').innerHTML = '';
-
-      // Show confirmation details
-      document.getElementById('confirmation-details').innerHTML = `
-        <div class="result-row"><span class="result-label">Farm ID</span><span class="result-value">#${json.farm_id}</span></div>
-        <div class="result-row"><span class="result-label">Farm</span><span class="result-value">${data.farm_name}</span></div>
-        <div class="result-row"><span class="result-label">Country</span><span class="result-value"><span class="badge badge-${data.country.toLowerCase()}">${data.country}</span></span></div>
-        <div class="result-row"><span class="result-label">Region</span><span class="result-value">${data.region}</span></div>
-        <div class="result-row"><span class="result-label">${data.country==='AU'?'NLIS PIC':'NAIT Number'}</span><span class="result-value">${data.traceability_id}</span></div>
-      `;
-      showStep(2);
-    } else {
-      document.getElementById('farm-errors').innerHTML = `<div class="alert alert-error"><span>⚠️</span><div>${json.errors.join('<br>')}</div></div>`;
-    }
-  } catch (err) {
-    document.getElementById('farm-errors').innerHTML = `<div class="alert alert-error"><span>⚠️</span><div>Connection error. Please try again.</div></div>`;
-  }
-  btn.disabled = false;
-  btn.textContent = 'Register Farm →';
-}
-
-// ═══ CSV UPLOAD ═══
-function handleDrop(e) {
-  e.preventDefault();
-  e.currentTarget.classList.remove('dragover');
-  const file = e.dataTransfer.files[0];
-  if (file) handleFileSelect(file);
-}
-
-async function handleFileSelect(file) {
-  if (!file || !currentFarmId) return;
-  await uploadCSV(file, currentFarmId, 'upload-result', 'upload-errors');
-  document.getElementById('upload-preview').classList.remove('hidden');
-  document.getElementById('upload-continue-btn').classList.remove('hidden');
-}
-
-async function uploadCSV(file, farmId, resultDivId, errorDivId) {
-  const formData = new FormData();
-  formData.append('csv', file);
-
-  const resultDiv = document.getElementById(resultDivId);
-  const errorDiv = document.getElementById(errorDivId);
-  resultDiv.innerHTML = '<div class="alert alert-info">Processing CSV...</div>';
-  errorDiv.innerHTML = '';
-
-  try {
-    const res = await fetch(`/api/farms/${farmId}/animals/upload`, {
-      method: 'POST',
-      body: formData
-    });
-    const json = await res.json();
-
-    if (json.success) {
-      const s = json.summary;
-      let html = `<div class="alert alert-success"><span>✅</span><div>
-        <strong>Upload complete:</strong> ${s.inserted} animals added`;
-      if (s.duplicates > 0) html += `, ${s.duplicates} duplicates skipped`;
-      if (s.rejected > 0) html += `, ${s.rejected} rows rejected`;
-      html += `</div></div>`;
-
-      if (json.errors && json.errors.length > 0) {
-        html += `<details style="margin-top:8px"><summary style="font-size:13px;color:var(--red);cursor:pointer;font-weight:600">Show ${json.errors.length} error(s)</summary>
-          <div style="margin-top:8px;font-size:12px;color:var(--gray-700)">`;
-        json.errors.forEach(e => {
-          html += `<div style="padding:6px 0;border-bottom:1px solid var(--gray-100)">Row ${e.row}: ${e.errors.map(err=>err.message).join('; ')}</div>`;
-        });
-        html += `</div></details>`;
-      }
-      resultDiv.innerHTML = html;
-    } else {
-      errorDiv.innerHTML = `<div class="alert alert-error"><span>⚠️</span><div>${json.error}</div></div>`;
-      resultDiv.innerHTML = '';
-    }
-  } catch (err) {
-    errorDiv.innerHTML = `<div class="alert alert-error"><span>⚠️</span><div>Upload failed. Please try again.</div></div>`;
-  }
-}
-
-// ═══ DASHBOARD ═══
-async function loadDashboard() {
-  if (!currentFarmId) {
-    document.getElementById('no-farm-msg').classList.remove('hidden');
-    document.getElementById('dash-content').classList.add('hidden');
+  if (!session) {
+    $('siteHeader').classList.remove('visible');
+    showSection('sectionLogin');
     return;
   }
-  document.getElementById('no-farm-msg').classList.add('hidden');
-  document.getElementById('dash-content').classList.remove('hidden');
 
-  try {
-    const [farmRes, animalsRes] = await Promise.all([
-      fetch(`/api/farms/${currentFarmId}`).then(r => r.json()),
-      fetch(`/api/farms/${currentFarmId}/animals`).then(r => r.json())
-    ]);
+  $('siteHeader').classList.add('visible');
 
-    if (!farmRes.success) {
-      currentFarmId = null;
-      localStorage.removeItem('kp_farm_id');
-      document.getElementById('no-farm-msg').classList.remove('hidden');
-      document.getElementById('dash-content').classList.add('hidden');
-      return;
-    }
-
-    const farm = farmRes.farm;
-    const stats = animalsRes.stats;
-
-    document.getElementById('dash-title').textContent = farm.farm_name;
-    document.getElementById('dash-sub').innerHTML = `<span class="badge badge-${farm.country.toLowerCase()}">${farm.country}</span> ${farm.region} · ${farm.country==='AU'?'NLIS PIC':'NAIT'}: ${farm.traceability_id}`;
-
-    document.getElementById('dash-stats').innerHTML = `
-      <div class="stat-card"><div class="stat-num">${stats.total}</div><div class="stat-label">Total Animals</div></div>
-      <div class="stat-card"><div class="stat-num">${stats.bulls}</div><div class="stat-label">Bulls</div></div>
-      <div class="stat-card"><div class="stat-num">${stats.steers}</div><div class="stat-label">Steers</div></div>
-      <div class="stat-card"><div class="stat-num">${stats.heifers}</div><div class="stat-label">Heifers</div></div>
-    `;
-
-    // Animals table
-    if (animalsRes.animals.length === 0) {
-      document.getElementById('dash-animals').innerHTML = `
-        <div class="alert alert-info"><span>ℹ️</span><div>No animals registered yet. Upload a CSV to get started.</div></div>`;
-    } else {
-      let table = `<div class="table-wrap"><table>
-        <thead><tr><th>EID</th><th>VID</th><th>Sex</th><th>Breed</th><th>Birth Date</th><th>Birth Wt</th></tr></thead><tbody>`;
-      animalsRes.animals.forEach(a => {
-        table += `<tr>
-          <td style="font-family:monospace;font-size:12px">${a.eid}</td>
-          <td>${a.vid||'—'}</td>
-          <td><span class="badge badge-${a.sex}">${a.sex}</span></td>
-          <td>${a.breed||'—'}</td>
-          <td>${a.birth_date}</td>
-          <td>${a.birth_weight_kg ? a.birth_weight_kg+' kg' : '—'}</td>
-        </tr>`;
-      });
-      table += '</tbody></table></div>';
-      document.getElementById('dash-animals').innerHTML = table;
-    }
-
-    // Upload history
-    if (farmRes.recent_uploads.length === 0) {
-      document.getElementById('dash-history').innerHTML = `<div class="alert alert-info"><span>ℹ️</span><div>No uploads yet.</div></div>`;
-    } else {
-      let hist = '<div class="table-wrap"><table><thead><tr><th>File</th><th>Date</th><th>Accepted</th><th>Rejected</th></tr></thead><tbody>';
-      farmRes.recent_uploads.forEach(u => {
-        hist += `<tr><td>${u.filename}</td><td>${new Date(u.created_at).toLocaleDateString()}</td><td style="color:var(--green-700);font-weight:600">${u.rows_accepted}</td><td style="color:${u.rows_rejected>0?'var(--red)':'var(--gray-400)'}">${u.rows_rejected}</td></tr>`;
-      });
-      hist += '</tbody></table></div>';
-      document.getElementById('dash-history').innerHTML = hist;
-    }
-  } catch (err) {
-    document.getElementById('dash-content').innerHTML = `<div class="alert alert-error"><span>⚠️</span><div>Failed to load farm data.</div></div>`;
+  currentFarm = await fetchFirstFarm(session.access_token);
+  if (!currentFarm) {
+    showSection('sectionRegister');
+  } else {
+    showSection('sectionDashboard');
+    loadDashboard(currentFarm, session.access_token);
   }
 }
 
-function showDashTab(tab, el) {
-  document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  ['animals','upload','history'].forEach(t =>
-    document.getElementById('dash-'+t).classList.toggle('hidden', t !== tab));
+async function fetchFirstFarm(token) {
+  try {
+    const res = await fetch('/api/farms', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) return null;
+    const farms = await res.json();
+    return farms.length > 0 ? farms[0] : null;
+  } catch {
+    return null;
+  }
 }
 
-function handleDashDrop(e) {
+async function loadDashboard(farm, token) {
+  const typeLabel = (farm.farm_type || '').replace(/_/g, ' ');
+  $('dashFarmName').textContent = farm.farm_name;
+  $('dashFarmMeta').textContent = `${farm.region} · ${typeLabel}`;
+
+  const res = await fetch(`/api/farms/${farm.id}/animals`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) return;
+  const mobs = await res.json();
+
+  const totalHead = mobs.reduce((sum, m) => sum + (m.head_count || 0), 0);
+  $('statMobs').textContent = mobs.length;
+  $('statHead').textContent = totalHead;
+
+  const list = $('mobList');
+  if (mobs.length === 0) {
+    list.innerHTML = '<li class="mob-item"><span style="color: var(--kp-ink-muted); font-size:13px;">No mobs yet — upload a CSV to get started.</span></li>';
+    return;
+  }
+
+  list.innerHTML = mobs.map(mob => {
+    const meta = [mob.breed, mob.sex, mob.drop_type].filter(Boolean).join(' · ') || '—';
+    return `
+      <li class="mob-item">
+        <div>
+          <div class="mob-name">${escHtml(mob.mob_name)}</div>
+          <div class="mob-meta">${escHtml(meta)}</div>
+        </div>
+        <div>
+          <div class="mob-count">${mob.head_count || 0}</div>
+          <span class="mob-count-label">head</span>
+        </div>
+      </li>`;
+  }).join('');
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ---- Magic link login ----
+$('btnSendMagicLink').addEventListener('click', async () => {
+  const email = $('loginEmail').value.trim();
+  if (!email) return setAlert('loginAlert', 'Please enter your email address.', 'error');
+
+  const btn = $('btnSendMagicLink');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  const { error } = await supabase.auth.signInWithOtp({ email });
+
+  btn.disabled = false;
+  btn.textContent = 'Send magic link';
+
+  if (error) {
+    setAlert('loginAlert', error.message, 'error');
+  } else {
+    $('magicLinkEmail').textContent = email;
+    showSection('sectionMagicSent');
+  }
+});
+
+// Allow Enter key on email field
+$('loginEmail').addEventListener('keydown', e => {
+  if (e.key === 'Enter') $('btnSendMagicLink').click();
+});
+
+// ---- Farm registration ----
+$('btnRegisterFarm').addEventListener('click', async () => {
+  const farm_name = $('farmName').value.trim();
+  const region = $('farmRegion').value;
+  const farm_type = $('farmType').value;
+
+  if (!farm_name || !region || !farm_type) {
+    return setAlert('registerAlert', 'Please fill in all fields.', 'error');
+  }
+
+  const btn = $('btnRegisterFarm');
+  btn.disabled = true;
+  btn.textContent = 'Registering…';
+
+  $('step1').classList.add('done');
+  $('step2').classList.add('active');
+
+  const res = await fetch('/api/farms', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${currentSession.access_token}`
+    },
+    body: JSON.stringify({ farm_name, region, farm_type })
+  });
+
+  btn.disabled = false;
+  btn.textContent = 'Register farm';
+
+  if (!res.ok) {
+    $('step1').classList.remove('done');
+    $('step2').classList.remove('active');
+    const err = await res.json().catch(() => ({}));
+    return setAlert('registerAlert', err.error || 'Registration failed. Please try again.', 'error');
+  }
+
+  $('step2').classList.add('done');
+  $('step3').classList.add('active', 'done');
+
+  const farm = await res.json();
+  currentFarm = farm;
+
+  // Brief pause so the user sees the completed steps
+  await new Promise(r => setTimeout(r, 400));
+
+  showSection('sectionDashboard');
+  loadDashboard(farm, currentSession.access_token);
+});
+
+// ---- CSV upload ----
+const uploadZone = $('uploadZone');
+const fileInput = $('fileInput');
+
+uploadZone.addEventListener('click', () => fileInput.click());
+
+uploadZone.addEventListener('dragover', e => {
   e.preventDefault();
-  e.currentTarget.classList.remove('dragover');
+  uploadZone.classList.add('dragover');
+});
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('dragover');
   const file = e.dataTransfer.files[0];
-  if (file) handleDashUpload(file);
+  if (file) handleUpload(file);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) handleUpload(fileInput.files[0]);
+  fileInput.value = '';
+});
+
+async function handleUpload(file) {
+  setAlert('uploadAlert', 'Uploading…', 'info');
+
+  const form = new FormData();
+  form.append('file', file);
+
+  const res = await fetch(`/api/farms/${currentFarm.id}/animals/upload`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${currentSession.access_token}` },
+    body: form
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    return setAlert('uploadAlert', err.error || 'Upload failed.', 'error');
+  }
+
+  const result = await res.json();
+  setAlert('uploadAlert', `Inserted ${result.inserted} mob(s) from ${result.total} row(s).`, 'success');
+  loadDashboard(currentFarm, currentSession.access_token);
 }
 
-async function handleDashUpload(file) {
-  if (!file || !currentFarmId) return;
-  await uploadCSV(file, currentFarmId, 'dash-upload-result', 'dash-upload-result');
-  loadDashboard();
-}
+// ---- Sign out ----
+$('btnSignOut').addEventListener('click', async () => {
+  await supabase.auth.signOut();
+});
 
-// ═══ INIT ═══
-if (currentFarmId) {
-  // If they already registered, show dashboard
-}
+// ---- Start ----
+init();
 </script>
+
 </body>
 </html>
