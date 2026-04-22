@@ -38,13 +38,13 @@ async function requireAuth(req, res, next) {
 
 // POST /api/farms
 app.post('/api/farms', requireAuth, async (req, res) => {
-  const { farm_name, region, farm_type } = req.body;
+  const { farm_name, region, farm_type, herd_size } = req.body;
   if (!farm_name || !region || !farm_type) {
     return res.status(400).json({ error: 'farm_name, region, and farm_type are required' });
   }
   const { data, error } = await getSupabase()
     .from('farms')
-    .insert({ farm_name, region, farm_type, owner_id: req.user.id })
+    .insert({ farm_name, region, farm_type, herd_size: herd_size ? parseInt(herd_size, 10) : null, owner_id: req.user.id })
     .select()
     .single();
   if (error) return res.status(500).json({ error: error.message });

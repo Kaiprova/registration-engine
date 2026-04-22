@@ -1028,32 +1028,38 @@ $('btnRegisterFarm').addEventListener('click', async () => {
   btn.disabled = true;
   btn.textContent = 'Registering…';
 
-  const res = await fetch('/api/farms', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${currentSession.access_token}`
-    },
-    body: JSON.stringify({
-      farm_name: wizardData.farm_name,
-      region: wizardData.region,
-      farm_type: wizardData.farm_type,
-      herd_size: wizardData.herd_size
-    })
-  });
+  try {
+    const res = await fetch('/api/farms', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${currentSession.access_token}`
+      },
+      body: JSON.stringify({
+        farm_name: wizardData.farm_name,
+        region: wizardData.region,
+        farm_type: wizardData.farm_type,
+        herd_size: wizardData.herd_size
+      })
+    });
 
-  btn.disabled = false;
-  btn.textContent = 'Register farm';
+    btn.disabled = false;
+    btn.textContent = 'Register farm';
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    return setAlert('step3Alert', err.error || 'Registration failed. Please try again.', 'error');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return setAlert('step3Alert', err.error || 'Registration failed. Please try again.', 'error');
+    }
+
+    const farm = await res.json();
+    currentFarm = farm;
+    showSection('sectionDashboard');
+    loadDashboard(farm, currentSession.access_token);
+  } catch {
+    btn.disabled = false;
+    btn.textContent = 'Register farm';
+    setAlert('step3Alert', 'Network error — please check your connection and try again.', 'error');
   }
-
-  const farm = await res.json();
-  currentFarm = farm;
-  showSection('sectionDashboard');
-  loadDashboard(farm, currentSession.access_token);
 });
 
 // ---- Magic link login ----
