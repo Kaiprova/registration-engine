@@ -86,7 +86,7 @@ app.get('/api/farms/:id', requireAuth, async (req, res) => {
 app.post('/api/farms/:id/animals/upload', requireAuth, upload.single('file'), async (req, res) => {
   const { data: farm, error: farmError } = await getSupabase()
     .from('farms')
-    .select('id')
+    .select('id, farm_name')
     .eq('id', req.params.id)
     .eq('owner_id', req.user.id)
     .single();
@@ -102,18 +102,42 @@ app.post('/api/farms/:id/animals/upload', requireAuth, upload.single('file'), as
 
   if (rows.length === 0) return res.status(400).json({ error: 'CSV contains no rows' });
 
-  const mobs = rows.map(row => ({
+  // Detect group column — NAIT NZ export uses "Management Group"; accept common alternatives
+  const cols = Object.keys(rows[0]);
+  const groupCol = cols.find(c =>
+    /management.?group/i.test(c) ||
+    /^mob$/i.test(c) ||
+    /mob.?name/i.test(c) ||
+    /^group$/i.test(c) ||
+    /^herd$/i.test(c)
+  );
+  const breedCol = cols.find(c => /^breed/i.test(c));
+  const sexCol = cols.find(c => /^sex$/i.test(c) || /^gender$/i.test(c) || /animal.?type/i.test(c));
+
+  // Group all rows by mob name — if no group column, everything goes into one mob
+  const uploadDate = new Date().toISOString().slice(0, 10);
+  const defaultMobName = `Upload ${uploadDate}`;
+  const groups = {};
+  for (const row of rows) {
+    const key = groupCol ? (row[groupCol].trim() || defaultMobName) : defaultMobName;
+    if (!groups[key]) groups[key] = { breed: null, sex: null, count: 0 };
+    groups[key].count++;
+    if (!groups[key].breed && breedCol) groups[key].breed = row[breedCol] || null;
+    if (!groups[key].sex && sexCol) groups[key].sex = row[sexCol] || null;
+  }
+
+  const mobs = Object.entries(groups).map(([mobName, g]) => ({
     farm_id: req.params.id,
-    mob_name: row.mob_name || row.name || `Mob ${Date.now()}`,
-    breed: row.breed || null,
-    sex: row.sex || null,
-    drop_type: row.drop_type || null,
-    head_count: parseInt(row.head_count || row.count || '0', 10) || 0
+    mob_name: mobName,
+    breed: g.breed,
+    sex: g.sex,
+    drop_type: null,
+    head_count: g.count
   }));
 
   const { data, error } = await getSupabase().from('mobs').insert(mobs).select();
   if (error) return res.status(500).json({ error: error.message });
-  res.json({ inserted: data.length, total: rows.length });
+  res.json({ inserted: data.length, mobs: data.map(m => ({ name: m.mob_name, head_count: m.head_count })), total: rows.length });
 });
 
 // GET /api/farms/:id/animals
