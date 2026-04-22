@@ -6,14 +6,14 @@ const { parse } = require('csv-parse/sync');
 const { createClient } = require('@supabase/supabase-js');
 
 console.log('[startup] SUPABASE_URL:', process.env.SUPABASE_URL ? 'SET' : 'MISSING',
-  '| SUPABASE_SERVICE_KEY:', process.env.SUPABASE_SERVICE_KEY ? 'SET' : 'MISSING',
+  '| SUPABASE_SVC:', process.env.SUPABASE_SVC ? 'SET' : 'MISSING',
   '| NODE_ENV:', process.env.NODE_ENV || '(not set)');
 
 let _supabase;
 function getSupabase() {
   if (!_supabase) {
     const url = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_KEY;
+    const key = process.env.SUPABASE_SVC;
     if (!url || !key) {
       throw new Error(`Supabase env vars missing — URL: ${url ? 'set' : 'MISSING'}, KEY: ${key ? 'set' : 'MISSING'}`);
     }
