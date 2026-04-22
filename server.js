@@ -5,12 +5,13 @@ const multer = require('multer');
 const { parse } = require('csv-parse/sync');
 const { createClient } = require('@supabase/supabase-js');
 
-// Service role key bypasses RLS for server-side operations — never expose to frontend
-// Set SUPABASE_SERVICE_KEY in environment variables
-const supabase = createClient(
-  process.env.SUPABASE_URL || 'https://tafwprmxhwuhxckjdwdj.supabase.co',
-  process.env.SUPABASE_SERVICE_KEY
-);
+let _supabase;
+function getSupabase() {
+  if (!_supabase) {
+    _supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+  }
+  return _supabase;
+}
 
 const app = express();
 app.use(express.json());
@@ -27,7 +28,7 @@ async function requireAuth(req, res, next) {
     return res.status(401).json({ error: 'Authorization header required' });
   }
   const token = auth.slice(7);
-  const { data: { user }, error } = await supabase.auth.getUser(token);
+  const { data: { user }, error } = await getSupabase().auth.getUser(token);
   if (error || !user) {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
@@ -41,7 +42,7 @@ app.post('/api/farms', requireAuth, async (req, res) => {
   if (!farm_name || !region || !farm_type) {
     return res.status(400).json({ error: 'farm_name, region, and farm_type are required' });
   }
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('farms')
     .insert({ farm_name, region, farm_type, owner_id: req.user.id })
     .select()
@@ -52,7 +53,7 @@ app.post('/api/farms', requireAuth, async (req, res) => {
 
 // GET /api/farms
 app.get('/api/farms', requireAuth, async (req, res) => {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('farms')
     .select('*, mobs(count)')
     .eq('owner_id', req.user.id);
@@ -62,7 +63,7 @@ app.get('/api/farms', requireAuth, async (req, res) => {
 
 // GET /api/farms/:id
 app.get('/api/farms/:id', requireAuth, async (req, res) => {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('farms')
     .select('*, mobs(*)')
     .eq('id', req.params.id)
@@ -74,7 +75,7 @@ app.get('/api/farms/:id', requireAuth, async (req, res) => {
 
 // POST /api/farms/:id/animals/upload
 app.post('/api/farms/:id/animals/upload', requireAuth, upload.single('file'), async (req, res) => {
-  const { data: farm, error: farmError } = await supabase
+  const { data: farm, error: farmError } = await getSupabase()
     .from('farms')
     .select('id')
     .eq('id', req.params.id)
@@ -101,14 +102,14 @@ app.post('/api/farms/:id/animals/upload', requireAuth, upload.single('file'), as
     head_count: parseInt(row.head_count || row.count || '0', 10) || 0
   }));
 
-  const { data, error } = await supabase.from('mobs').insert(mobs).select();
+  const { data, error } = await getSupabase().from('mobs').insert(mobs).select();
   if (error) return res.status(500).json({ error: error.message });
   res.json({ inserted: data.length, total: rows.length });
 });
 
 // GET /api/farms/:id/animals
 app.get('/api/farms/:id/animals', requireAuth, async (req, res) => {
-  const { data: farm, error: farmError } = await supabase
+  const { data: farm, error: farmError } = await getSupabase()
     .from('farms')
     .select('id')
     .eq('id', req.params.id)
@@ -116,7 +117,7 @@ app.get('/api/farms/:id/animals', requireAuth, async (req, res) => {
     .single();
   if (farmError || !farm) return res.status(404).json({ error: 'Farm not found' });
 
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('mobs')
     .select('*, weigh_events(*)')
     .eq('farm_id', req.params.id);
@@ -126,13 +127,13 @@ app.get('/api/farms/:id/animals', requireAuth, async (req, res) => {
 
 // GET /api/stats — returns only the authenticated farmer's own counts
 app.get('/api/stats', requireAuth, async (req, res) => {
-  const { count: farmCount, error: farmError } = await supabase
+  const { count: farmCount, error: farmError } = await getSupabase()
     .from('farms')
     .select('id', { count: 'exact', head: true })
     .eq('owner_id', req.user.id);
   if (farmError) return res.status(500).json({ error: farmError.message });
 
-  const { data: farms } = await supabase
+  const { data: farms } = await getSupabase()
     .from('farms')
     .select('id')
     .eq('owner_id', req.user.id);
@@ -140,7 +141,7 @@ app.get('/api/stats', requireAuth, async (req, res) => {
   const farmIds = (farms || []).map(f => f.id);
   let mobCount = 0;
   if (farmIds.length > 0) {
-    const { count, error: mobError } = await supabase
+    const { count, error: mobError } = await getSupabase()
       .from('mobs')
       .select('id', { count: 'exact', head: true })
       .in('farm_id', farmIds);
