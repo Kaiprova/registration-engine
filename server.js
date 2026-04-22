@@ -107,8 +107,9 @@ app.post('/api/farms/:id/animals/upload', requireAuth, upload.single('file'), as
     const line = allLines[lineIndex];
     const colonIdx = line.indexOf(':');
     const key = line.slice(0, colonIdx).trim().toLowerCase();
-    // Strip trailing commas (metadata values are padded with commas to match column count)
-    const value = line.slice(colonIdx + 1).replace(/,+$/, '').trim();
+    // Strip trailing commas (metadata values are padded with commas to match column count).
+    // trim() first so \r doesn't sit after the commas and fool the regex anchor.
+    const value = line.slice(colonIdx + 1).trim().replace(/,+$/, '').trim();
     if (key === 'name') metaName = value;
     lineIndex++;
   }
