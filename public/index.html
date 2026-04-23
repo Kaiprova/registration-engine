@@ -745,9 +745,12 @@
       border: 1px solid rgba(0, 0, 0, 0.09);
       border-radius: 12px;
       overflow: hidden;
-      max-width: 1240px;
+      max-width: 1440px;
       margin: 0 auto;
       box-shadow: 0 4px 28px rgba(14, 63, 38, 0.08);
+    }
+    @media (min-width: 1200px) {
+      .app-main { padding: 28px 36px 44px; }
     }
     .app-sidebar {
       background: var(--kp-pasture-mid);
@@ -1057,6 +1060,19 @@
       color: var(--kp-ink-muted);
       font-size: 12px;
       text-align: center;
+    }
+
+    /* 2-column grid: stacked below 1200px, side-by-side above */
+    .md-two-col { display: block; }
+    .md-two-col > .md-section { margin-bottom: 1rem; }
+    @media (min-width: 1200px) {
+      .md-two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+      .md-two-col > .md-section { margin-bottom: 0; }
     }
 
     .md-carbon-grid {
@@ -1771,19 +1787,21 @@
             </div>
           </div>
 
-          <div class="md-section">
-            <h2>Weigh history</h2>
-            <div class="md-chart-wrap" id="mdChartWrap">
-              <canvas id="mdChart"></canvas>
+          <div class="md-two-col">
+            <div class="md-section">
+              <h2>Weigh history</h2>
+              <div class="md-chart-wrap" id="mdChartWrap">
+                <canvas id="mdChart"></canvas>
+              </div>
             </div>
-          </div>
 
-          <div class="md-section">
-            <h2>Carbon footprint <span class="md-carbon-sub">projection</span></h2>
-            <p class="md-carbon-lede" id="mdCarbonLede"></p>
-            <div class="md-carbon-assump" id="mdCarbonAssump"></div>
-            <div class="md-carbon-grid" id="mdCarbon"></div>
-            <div class="md-carbon-note" id="mdCarbonNote"></div>
+            <div class="md-section">
+              <h2>Carbon footprint <span class="md-carbon-sub">projection</span></h2>
+              <p class="md-carbon-lede" id="mdCarbonLede"></p>
+              <div class="md-carbon-assump" id="mdCarbonAssump"></div>
+              <div class="md-carbon-grid" id="mdCarbon"></div>
+              <div class="md-carbon-note" id="mdCarbonNote"></div>
+            </div>
           </div>
 
           <div class="md-section" id="mdAnimalsSection">
