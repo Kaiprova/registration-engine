@@ -466,6 +466,17 @@
       vertical-align: middle;
     }
     .mob-table tr:last-child td { border-bottom: none; }
+    .mob-table { min-width: 520px; }
+
+    @media (max-width: 640px) {
+      .mob-table { font-size: 13px; min-width: 380px; }
+      .mob-table th { font-size: 10px; padding: 0 0.5rem 0.5rem; }
+      .mob-table td { padding: 10px 0.5rem; }
+      /* Hide the Breed/type column on phones — it's often '—' anyway */
+      .mob-table th:nth-child(2),
+      .mob-table td:nth-child(2) { display: none; }
+      .mob-count-val { font-size: 1.15rem; }
+    }
     .mob-name-cell { font-weight: 600; color: var(--kp-ink); }
     .mob-meta-cell { font-size: 12px; color: var(--kp-ink-muted); margin-top: 2px; }
     .mob-count-val {
@@ -2189,7 +2200,7 @@ function drawAnimalsTable() {
       <td class="md-animals-num">${a.n_weighs}</td>
       <td>${a.draft ? escapeAttr(a.draft) : ''}</td>
     </tr>
-    ${a.eid === expandedEid ? `<tr><td colspan="6" class="md-animals-detail" id="mdAnimalDetail-${escapeAttr(a.eid)}"><div class="md-empty">Loading…</div></td></tr>` : ''}
+    ${a.eid === expandedEid ? `<tr><td colspan="6" class="md-animals-detail" id="mdAnimalDetail-${cssEscape(a.eid)}"><div class="md-empty">Loading…</div></td></tr>` : ''}
   `).join('');
 
   root.innerHTML = `
@@ -2253,7 +2264,7 @@ async function renderAnimalMiniChart(eid) {
   const last = history[history.length - 1];
   const totalGain = Number(last.weight) - Number(first.weight);
   const nWeighs = history.length;
-  const daysSpan = Math.max(1, Math.round((new Date(last.weight) - new Date(first.weigh_date)) / 86400000));
+  const daysSpan = Math.max(1, Math.round((new Date(last.weigh_date) - new Date(first.weigh_date)) / 86400000));
 
   host.innerHTML = `
     <div class="md-animals-detail-meta">
