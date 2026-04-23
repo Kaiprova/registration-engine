@@ -1167,6 +1167,47 @@
       padding: 10px;
     }
 
+    /* ---- Collapsible section header (shared class, used on Animals) ---- */
+    .md-section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      margin-bottom: 0.75rem;
+    }
+    .md-section-head h2 {
+      margin-bottom: 0;
+    }
+    .md-section-head .md-section-chev {
+      font-size: 14px;
+      color: var(--kp-pasture-mid);
+      transition: transform 0.15s ease;
+      padding: 4px 8px;
+    }
+    .md-section.collapsed .md-section-chev { transform: rotate(-90deg); }
+    .md-section.collapsed .md-section-body { display: none; }
+
+    /* ---- Horizontal scroll wrapper: keeps table inside section width ---- */
+    .md-animals-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      max-width: 100%;
+      margin: 0 -0.25rem;
+    }
+    .md-animals-scroll .md-animals-table { min-width: 560px; }
+
+    /* Narrow screens: tighter padding, smaller fonts, hide Draft column */
+    @media (max-width: 640px) {
+      .md-animals-table th, .md-animals-table td { padding: 6px 8px; }
+      .md-animals-table th { font-size: 9px; }
+      .md-animals-table td { font-size: 11px; }
+      .md-animals-eid { font-size: 10px; }
+      .md-animals-table th:nth-child(6),
+      .md-animals-table td:nth-child(6) { display: none; } /* hide Draft col */
+      .md-animals-scroll .md-animals-table { min-width: 460px; }
+    }
+
     .planner-extrap {
       font-size: 11px;
       color: var(--kp-gold-kraft);
@@ -1596,10 +1637,15 @@
             </div>
           </div>
 
-          <div class="md-section">
-            <h2>Animals <span id="mdAnimalsCount" style="font-size:12px;font-weight:400;color:var(--kp-ink-muted);margin-left:8px"></span></h2>
-            <div class="md-animals-hint">Click any row to see that animal's weigh history.</div>
-            <div id="mdAnimals"></div>
+          <div class="md-section" id="mdAnimalsSection">
+            <div class="md-section-head" id="mdAnimalsToggle" role="button" aria-expanded="true">
+              <h2>Animals <span id="mdAnimalsCount" style="font-size:12px;font-weight:400;color:var(--kp-ink-muted);margin-left:8px"></span></h2>
+              <span class="md-section-chev" aria-hidden="true">&#9662;</span>
+            </div>
+            <div class="md-section-body">
+              <div class="md-animals-hint">Click any row to see that animal's weigh history.</div>
+              <div class="md-animals-scroll"><div id="mdAnimals"></div></div>
+            </div>
           </div>
 
           <div class="md-section">
@@ -2085,6 +2131,22 @@ let animalsData = [];
 let animalsSort = { key: 'latest_weight', dir: 'desc' };
 let expandedEid = null;
 let animalChartInstance = null;
+
+// Collapsible section state — default closed on mobile, open on desktop.
+(function wireAnimalsToggle() {
+  const toggle = document.getElementById('mdAnimalsToggle');
+  const section = document.getElementById('mdAnimalsSection');
+  if (!toggle || !section) return;
+  // Default collapsed on narrow viewports
+  if (window.matchMedia && window.matchMedia('(max-width: 640px)').matches) {
+    section.classList.add('collapsed');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+  toggle.addEventListener('click', () => {
+    section.classList.toggle('collapsed');
+    toggle.setAttribute('aria-expanded', section.classList.contains('collapsed') ? 'false' : 'true');
+  });
+})();
 
 function renderAnimalsTable(animals) {
   animalsData = animals || [];
