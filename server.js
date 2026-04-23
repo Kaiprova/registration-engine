@@ -183,11 +183,61 @@ app.post('/api/farms/:id/animals/upload', requireAuth, upload.single('file'), as
         );
     }
 
+    // Phase 3a: save raw CSV to storage + capture per-animal records.
+    let animalsWritten = 0;
+    if (data && data[0]) {
+      const mobId = data[0].id;
+
+      // 1) Archive the raw CSV so we have the source of truth for future re-parses.
+      try {
+        const storagePath = `${req.params.id}/${mobId}/${weighDate}.csv`;
+        await getSupabase().storage
+          .from('weigh-uploads')
+          .upload(storagePath, req.file.buffer, { contentType: 'text/csv', upsert: true });
+      } catch (e) {
+        console.warn('[phase3a] storage upload failed:', e.message || e);
+      }
+
+      // 2) Upsert one row per animal into animal_weighs.
+      const eidCol = cols.find(c => /^(eid|electronic[ _-]?id|rfid|tag[ _-]?id)$/i.test(c));
+      const draftCol = cols.find(c => /^draft$/i.test(c));
+      if (eidCol && weightCol) {
+        const animalRows = [];
+        for (const r of rows) {
+          const eid = (r[eidCol] || '').toString().trim();
+          const weight = parseFloat(r[weightCol]);
+          if (!eid || isNaN(weight) || weight <= 0) continue;
+          animalRows.push({
+            mob_id: mobId,
+            eid,
+            weigh_date: weighDate,
+            weight,
+            draft: draftCol ? (r[draftCol] || '').toString().trim() || null : null
+          });
+        }
+        if (animalRows.length) {
+          // Chunk to avoid Supabase request limits on very large mobs.
+          const CHUNK = 500;
+          for (let i = 0; i < animalRows.length; i += CHUNK) {
+            const { error: awErr } = await getSupabase()
+              .from('animal_weighs')
+              .upsert(animalRows.slice(i, i + CHUNK), { onConflict: 'eid,weigh_date' });
+            if (awErr) {
+              console.warn('[phase3a] animal_weighs upsert error:', awErr.message);
+              break;
+            }
+          }
+          animalsWritten = animalRows.length;
+        }
+      }
+    }
+
     return res.json({
       inserted: data.length,
       mobs: data.map(m => ({ name: m.mob_name, head_count: m.head_count })),
       total: head_count,
       weigh_date: weighDate,
+      animals_written: animalsWritten,
       ...(avg_weight !== null ? { avg_weight } : {})
     });
   }
@@ -359,6 +409,81 @@ app.get('/api/mobs/:id/attrition', requireAuth, async (req, res) => {
     .select('event_date, reason, head_count')
     .eq('mob_id', req.params.id)
     .order('event_date', { ascending: false });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data || []);
+});
+
+// GET /api/mobs/:id/animals — one row per EID with latest weight, recent+lifetime ADG, weigh count.
+app.get('/api/mobs/:id/animals', requireAuth, async (req, res) => {
+  const mob = await loadOwnedMob(getSupabase(), req.params.id, req.user.id);
+  if (!mob) return res.status(404).json({ error: 'Mob not found' });
+
+  // Pull all weighs for this mob, sorted oldest first. We aggregate in Node
+  // since pure-SQL ADG across array positions is clumsy without a view.
+  const { data, error } = await getSupabase()
+    .from('animal_weighs')
+    .select('eid, weigh_date, weight, draft')
+    .eq('mob_id', req.params.id)
+    .order('eid', { ascending: true })
+    .order('weigh_date', { ascending: true });
+  if (error) return res.status(500).json({ error: error.message });
+
+  const byEid = new Map();
+  for (const row of data || []) {
+    if (!byEid.has(row.eid)) byEid.set(row.eid, []);
+    byEid.get(row.eid).push(row);
+  }
+
+  const out = [];
+  for (const [eid, history] of byEid) {
+    const first = history[0];
+    const last = history[history.length - 1];
+    const nWeighs = history.length;
+    const firstDate = new Date(first.weigh_date);
+    const lastDate = new Date(last.weigh_date);
+
+    // Lifetime ADG: first to last weigh. Null if only one weigh.
+    let lifetimeAdg = null;
+    if (nWeighs >= 2) {
+      const days = (lastDate - firstDate) / 86400000;
+      if (days > 0) lifetimeAdg = +(((Number(last.weight) - Number(first.weight)) / days) * 1000).toFixed(0);
+    }
+
+    // Recent ADG: last two weighs.
+    let recentAdg = null;
+    if (nWeighs >= 2) {
+      const prev = history[history.length - 2];
+      const days = (lastDate - new Date(prev.weigh_date)) / 86400000;
+      if (days > 0) recentAdg = +(((Number(last.weight) - Number(prev.weight)) / days) * 1000).toFixed(0);
+    }
+
+    out.push({
+      eid,
+      latest_weight: Number(last.weight),
+      latest_date: last.weigh_date,
+      first_weight: Number(first.weight),
+      first_date: first.weigh_date,
+      n_weighs: nWeighs,
+      recent_adg: recentAdg,
+      lifetime_adg: lifetimeAdg,
+      draft: last.draft || null
+    });
+  }
+
+  res.json(out);
+});
+
+// GET /api/mobs/:id/animals/:eid/weigh-history — single animal's history
+app.get('/api/mobs/:id/animals/:eid/weigh-history', requireAuth, async (req, res) => {
+  const mob = await loadOwnedMob(getSupabase(), req.params.id, req.user.id);
+  if (!mob) return res.status(404).json({ error: 'Mob not found' });
+
+  const { data, error } = await getSupabase()
+    .from('animal_weighs')
+    .select('weigh_date, weight, draft')
+    .eq('mob_id', req.params.id)
+    .eq('eid', req.params.eid)
+    .order('weigh_date', { ascending: true });
   if (error) return res.status(500).json({ error: error.message });
   res.json(data || []);
 });

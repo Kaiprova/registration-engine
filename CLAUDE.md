@@ -178,6 +178,44 @@ New `sectionMobDetail` app-view. Click any mob row on **My Mobs** to open it (re
 
 **APP_VIEWS** updated to include `sectionMobDetail`. Sidebar has no entry for it — reached only via mob row click.
 
-## Next: Phase 3 — data adapter + demo contracts/offers
+## Phase 3 — Per-animal drill-down (23 Apr 2026)
 
-Inline the main platform's `FARMS`, `CONTRACTS`, `NOTIFS` arrays. Write an adapter that maps real Supabase mobs into the `{cls, season, bw, lwg, ageMonths, weighHistory}` shape the main platform's view functions expect. Bridge is what unlocks the Offers + Trace views built against demo data while keeping mob/farm data real.
+Replaced the "demo contracts/offers adapter" Phase 3 scope with a real feature: farmers can now drill from Mob → individual animal → weight curve over time. All real Supabase data.
+
+### Phase 3a — Backend
+
+**New Supabase table** `animal_weighs`:
+- `mob_id`, `eid`, `weigh_date`, `weight`, `draft`
+- Unique on `(eid, weigh_date)` — re-uploads replace, don't duplicate
+- Indexed on `(mob_id, eid)` and `(eid, weigh_date)`
+
+**New storage bucket** `weigh-uploads`:
+- Private, service-role access only
+- Path: `<farm_id>/<mob_id>/<weigh_date>.csv`
+- Raw CSVs archived on every livestock-weighing upload — enables future re-parsing if schema changes
+
+**Live migration:** `supabase/phase3a_migration.sql` (SQL editor run).
+
+**server.js changes:**
+- CSV upload (livestock format): after mob upsert + weigh_history write, archives raw to storage, then iterates rows and upserts each `{eid, weigh_date, weight, draft}` into `animal_weighs`. Chunked in 500-row batches for large mobs.
+- `GET /api/mobs/:id/animals` — aggregated per EID: `latest_weight`, `first_weight`, `n_weighs`, `recent_adg` (last 2 weighs), `lifetime_adg` (first-to-last). Scoped via `loadOwnedMob`.
+- `GET /api/mobs/:id/animals/:eid/weigh-history` — full weigh history for one animal.
+
+### Phase 3b — Frontend
+
+New **Animals** section on Mob Detail, between Weigh history chart and Carbon footprint.
+
+**Sortable table:** EID · Latest (kg) · Recent ADG · Lifetime ADG · # weighs · Draft. Click any header to sort; defaults to latest weight desc. ADG cells coloured: green when ≥800 g/d, amber when <500, muted when only one weigh.
+
+**Row drill-down:** click any row → inline expand with a Chart.js mini line chart of that animal's weight over time. Meta row shows EID, # weighs, first/latest weights, total gain. One animal open at a time; clicking the same row collapses; Chart instance destroyed on each re-open.
+
+Empty state when no per-animal data (pre-Phase-3a uploads): message prompts farmer to re-upload a weigh sheet.
+
+## Action items for live site
+1. Run `supabase/phase3a_migration.sql` in SQL editor (creates `animal_weighs` + `weigh-uploads` bucket).
+2. Push with `git_push.bat`.
+3. Re-upload existing livestock weighing CSVs — each re-upload populates per-animal rows *and* archives the raw CSV to storage.
+
+## Next: Phase 4 — demo contracts + offers
+
+Previously the Phase 3 scope, now pushed back. Inline the main platform's `FARMS`, `CONTRACTS`, `NOTIFS` arrays. Write an adapter that maps real Supabase mobs into the `{cls, season, bw, lwg, ageMonths, weighHistory}` shape the main platform's view functions expect. Bridge is what unlocks the Offers + Trace views built against demo data while keeping mob/farm data real.

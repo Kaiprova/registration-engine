@@ -1097,6 +1097,76 @@
       padding: 10px 0;
     }
 
+    /* ============================================================
+       Phase 3b - Animals drill-down table
+    ============================================================ */
+    .md-animals-hint {
+      font-size: 11px;
+      color: var(--kp-ink-muted);
+      margin-bottom: 0.6rem;
+    }
+    .md-animals-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .md-animals-table th {
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--kp-ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--kp-border);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .md-animals-table th.sorted-asc::after  { content: " \2191"; color: var(--kp-pasture-mid); }
+    .md-animals-table th.sorted-desc::after { content: " \2193"; color: var(--kp-pasture-mid); }
+    .md-animals-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--kp-border);
+      vertical-align: middle;
+    }
+    .md-animals-row { cursor: pointer; transition: background 0.1s; }
+    .md-animals-row:hover { background: rgba(26, 107, 66, 0.05); }
+    .md-animals-row.expanded { background: rgba(26, 107, 66, 0.08); }
+    .md-animals-eid {
+      font-family: var(--kp-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--kp-ink);
+    }
+    .md-animals-num { text-align: right; font-variant-numeric: tabular-nums; }
+    .md-animals-adg { font-variant-numeric: tabular-nums; }
+    .md-animals-adg.good   { color: var(--kp-pasture-mid); font-weight: 600; }
+    .md-animals-adg.slow   { color: var(--kp-gold-kraft); }
+    .md-animals-adg.muted  { color: var(--kp-ink-muted); }
+
+    .md-animals-detail {
+      background: #fff;
+      padding: 14px 16px 18px;
+    }
+    .md-animals-detail-meta {
+      font-size: 11px;
+      color: var(--kp-ink-muted);
+      margin-bottom: 10px;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .md-animals-detail-meta strong { color: var(--kp-ink); font-weight: 600; }
+    .md-animal-chart-wrap {
+      position: relative;
+      height: 180px;
+      background: var(--kp-paper-surface);
+      border: 1px solid var(--kp-border);
+      border-radius: 6px;
+      padding: 10px;
+    }
+
     .planner-extrap {
       font-size: 11px;
       color: var(--kp-gold-kraft);
@@ -1527,6 +1597,12 @@
           </div>
 
           <div class="md-section">
+            <h2>Animals <span id="mdAnimalsCount" style="font-size:12px;font-weight:400;color:var(--kp-ink-muted);margin-left:8px"></span></h2>
+            <div class="md-animals-hint">Click any row to see that animal's weigh history.</div>
+            <div id="mdAnimals"></div>
+          </div>
+
+          <div class="md-section">
             <h2>Carbon footprint</h2>
             <div class="md-carbon-grid" id="mdCarbon"></div>
             <div class="md-carbon-note" id="mdCarbonNote"></div>
@@ -1844,14 +1920,16 @@ async function openMobDetail(mob) {
   showSection('sectionMobDetail');
   window.scrollTo({ top: 0, behavior: 'instant' });
 
-  // Fetch weigh history + attrition in parallel
-  const [history, attrition] = await Promise.all([
+  // Fetch weigh history + attrition + animals in parallel
+  const [history, attrition, animals] = await Promise.all([
     fetchJson(`/api/mobs/${mob.id}/weigh-history`),
-    fetchJson(`/api/mobs/${mob.id}/attrition`)
+    fetchJson(`/api/mobs/${mob.id}/attrition`),
+    fetchJson(`/api/mobs/${mob.id}/animals`)
   ]);
 
   renderWeighChart(history || []);
   renderAttritionList(attrition || []);
+  renderAnimalsTable(animals || []);
 }
 
 async function fetchJson(path) {
@@ -2001,6 +2079,172 @@ function renderMobDetailCarbon(mob, estLW) {
   const parts = [`${origin}-origin ${cls}`, `${season} drop`, `${defaultTargetLW} kg LW target @ ${defaultAdg} g/d`];
   note.textContent = `Default scenario: ${parts.join(' · ')}. Open the planner to change targets.`;
 }
+
+// ---- Animals table (Phase 3b) ----
+let animalsData = [];
+let animalsSort = { key: 'latest_weight', dir: 'desc' };
+let expandedEid = null;
+let animalChartInstance = null;
+
+function renderAnimalsTable(animals) {
+  animalsData = animals || [];
+  const root = $('mdAnimals');
+  const count = $('mdAnimalsCount');
+  count.textContent = animalsData.length ? `(${animalsData.length})` : '';
+  expandedEid = null;
+  if (animalChartInstance) { animalChartInstance.destroy(); animalChartInstance = null; }
+
+  if (!animalsData.length) {
+    root.innerHTML = `<div class="md-empty">No per-animal data yet. Upload a livestock weighing CSV (with EID + Weight columns) on <strong>My Mobs</strong> to populate this table.</div>`;
+    return;
+  }
+
+  drawAnimalsTable();
+}
+
+function drawAnimalsTable() {
+  const root = $('mdAnimals');
+  const { key, dir } = animalsSort;
+  const sorted = [...animalsData].sort((a, b) => {
+    const av = a[key], bv = b[key];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    if (typeof av === 'number' || typeof bv === 'number') return dir === 'asc' ? av - bv : bv - av;
+    return dir === 'asc' ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
+  });
+
+  const classForHeader = (k) => key === k ? (dir === 'asc' ? 'sorted-asc' : 'sorted-desc') : '';
+  const adgCls = (adg) => adg == null ? 'muted' : adg >= 800 ? 'good' : adg < 500 ? 'slow' : '';
+  const adgTxt = (adg) => adg == null ? '—' : `${adg} g/d`;
+
+  const rows = sorted.map(a => `
+    <tr class="md-animals-row${a.eid === expandedEid ? ' expanded' : ''}" data-eid="${escapeAttr(a.eid)}">
+      <td class="md-animals-eid">${escapeAttr(a.eid)}</td>
+      <td class="md-animals-num">${a.latest_weight.toFixed(1)}</td>
+      <td class="md-animals-adg ${adgCls(a.recent_adg)}">${adgTxt(a.recent_adg)}</td>
+      <td class="md-animals-adg ${adgCls(a.lifetime_adg)}">${adgTxt(a.lifetime_adg)}</td>
+      <td class="md-animals-num">${a.n_weighs}</td>
+      <td>${a.draft ? escapeAttr(a.draft) : ''}</td>
+    </tr>
+    ${a.eid === expandedEid ? `<tr><td colspan="6" class="md-animals-detail" id="mdAnimalDetail-${escapeAttr(a.eid)}"><div class="md-empty">Loading…</div></td></tr>` : ''}
+  `).join('');
+
+  root.innerHTML = `
+    <table class="md-animals-table">
+      <thead>
+        <tr>
+          <th class="${classForHeader('eid')}" data-sort="eid">EID</th>
+          <th class="${classForHeader('latest_weight')}" data-sort="latest_weight">Latest (kg)</th>
+          <th class="${classForHeader('recent_adg')}" data-sort="recent_adg">Recent ADG</th>
+          <th class="${classForHeader('lifetime_adg')}" data-sort="lifetime_adg">Lifetime ADG</th>
+          <th class="${classForHeader('n_weighs')}" data-sort="n_weighs"># weighs</th>
+          <th class="${classForHeader('draft')}" data-sort="draft">Draft</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  // Wire header sort clicks
+  root.querySelectorAll('th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => {
+      const k = th.dataset.sort;
+      if (animalsSort.key === k) {
+        animalsSort.dir = animalsSort.dir === 'asc' ? 'desc' : 'asc';
+      } else {
+        animalsSort = { key: k, dir: (k === 'eid' || k === 'draft') ? 'asc' : 'desc' };
+      }
+      drawAnimalsTable();
+    });
+  });
+
+  // Wire row clicks — expand/collapse per animal
+  root.querySelectorAll('tr.md-animals-row').forEach(tr => {
+    tr.addEventListener('click', async () => {
+      const eid = tr.dataset.eid;
+      if (expandedEid === eid) {
+        expandedEid = null;
+        if (animalChartInstance) { animalChartInstance.destroy(); animalChartInstance = null; }
+        drawAnimalsTable();
+        return;
+      }
+      expandedEid = eid;
+      if (animalChartInstance) { animalChartInstance.destroy(); animalChartInstance = null; }
+      drawAnimalsTable();
+      await renderAnimalMiniChart(eid);
+    });
+  });
+}
+
+async function renderAnimalMiniChart(eid) {
+  if (!mdMob) return;
+  const host = document.getElementById(`mdAnimalDetail-${cssEscape(eid)}`);
+  if (!host) return;
+
+  const history = await fetchJson(`/api/mobs/${mdMob.id}/animals/${encodeURIComponent(eid)}/weigh-history`);
+  if (!history || !history.length) {
+    host.innerHTML = `<div class="md-empty">No weigh records for this animal yet.</div>`;
+    return;
+  }
+
+  const first = history[0];
+  const last = history[history.length - 1];
+  const totalGain = Number(last.weight) - Number(first.weight);
+  const nWeighs = history.length;
+  const daysSpan = Math.max(1, Math.round((new Date(last.weight) - new Date(first.weigh_date)) / 86400000));
+
+  host.innerHTML = `
+    <div class="md-animals-detail-meta">
+      <span><strong>EID:</strong> ${escapeAttr(eid)}</span>
+      <span><strong>Weighs:</strong> ${nWeighs}</span>
+      <span><strong>First:</strong> ${Number(first.weight).toFixed(1)} kg (${first.weigh_date})</span>
+      <span><strong>Latest:</strong> ${Number(last.weight).toFixed(1)} kg (${last.weigh_date})</span>
+      ${nWeighs >= 2 ? `<span><strong>Total gain:</strong> ${totalGain >= 0 ? '+' : ''}${totalGain.toFixed(1)} kg</span>` : ''}
+    </div>
+    <div class="md-animal-chart-wrap"><canvas id="mdAnimalChart-${cssEscape(eid)}"></canvas></div>`;
+
+  const ctx = document.getElementById(`mdAnimalChart-${cssEscape(eid)}`).getContext('2d');
+  const points = history.map(h => ({ x: h.weigh_date, y: Number(h.weight) }));
+  animalChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: { datasets: [{
+      label: 'Weight (kg)',
+      data: points,
+      borderColor: '#1A6B42',
+      backgroundColor: 'rgba(26, 107, 66, 0.08)',
+      borderWidth: 2,
+      pointRadius: 4,
+      pointBackgroundColor: '#1A6B42',
+      tension: 0.25,
+      fill: true
+    }] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (c) => `${c.parsed.y} kg` } }
+      },
+      scales: {
+        x: {
+          type: 'time',
+          time: { unit: 'month', tooltipFormat: 'dd MMM yyyy', displayFormats: { month: 'MMM yy' } },
+          ticks: { font: { size: 9 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        },
+        y: {
+          ticks: { font: { size: 9 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
+  });
+}
+
+// Minimal attribute/DOM-id escaping — EIDs are digit-heavy so this is cheap insurance.
+function escapeAttr(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function cssEscape(s) { return String(s).replace(/[^a-zA-Z0-9_-]/g, '_'); }
 
 // ---- Mob Detail button wiring (runs once at script load) ----
 const _btnMdBack = document.getElementById('btnMobDetailBack');
