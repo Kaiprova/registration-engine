@@ -1073,6 +1073,51 @@
     }
     .md-carbon-chip .md-chip-label { color: var(--kp-pasture-mid); }
     .md-carbon-chip .md-chip-value { color: var(--kp-pasture-deep); }
+    .md-carbon-sub {
+      display: inline-block;
+      margin-left: 8px;
+      font-family: var(--kp-sans);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fff;
+      background: var(--kp-pasture-mid);
+      padding: 3px 8px;
+      border-radius: 4px;
+      vertical-align: middle;
+    }
+    .md-carbon-lede {
+      font-size: 12.5px;
+      color: var(--kp-ink-muted);
+      line-height: 1.55;
+      margin: -4px 0 10px;
+    }
+    .md-carbon-lede strong { color: var(--kp-ink); font-weight: 600; }
+    .md-carbon-assump {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 0.9rem;
+    }
+    .md-assump-chip {
+      background: var(--kp-paper);
+      border: 1px solid var(--kp-border);
+      border-radius: 100px;
+      padding: 3px 10px;
+      font-size: 11px;
+      line-height: 1.4;
+      color: var(--kp-ink-muted);
+    }
+    .md-assump-chip strong {
+      color: var(--kp-ink);
+      font-weight: 600;
+      margin-right: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 10px;
+    }
+
     .md-carbon-note {
       margin-top: 0.6rem;
       font-size: 11px;
@@ -1734,8 +1779,12 @@
           </div>
 
           <div class="md-section">
-            <h2>Carbon footprint</h2>
+            <h2>Carbon footprint <span class="md-carbon-sub">projection</span></h2>
+            <p class="md-carbon-lede" id="mdCarbonLede"></p>
+            <div class="md-carbon-assump" id="mdCarbonAssump"></div>
             <div class="md-carbon-grid" id="mdCarbon"></div>
+            <div class="md-carbon-note" id="mdCarbonNote"></div>
+          </div>
 
           <div class="md-section" id="mdAnimalsSection">
             <div class="md-section-head" id="mdAnimalsToggle" role="button" aria-expanded="true">
@@ -1746,8 +1795,6 @@
               <div class="md-animals-hint">Click any row to see that animal's weigh history.</div>
               <div class="md-animals-scroll"><div id="mdAnimals"></div></div>
             </div>
-          </div>
-            <div class="md-carbon-note" id="mdCarbonNote"></div>
           </div>
 
           <div class="md-section">
@@ -2206,12 +2253,12 @@ function renderMobDetailCarbon(mob, estLW) {
     <div class="md-carbon-chip">
       <div class="md-chip-label">Footprint (LW)</div>
       <div class="md-chip-value">${lca.fpLW.toFixed(2)}</div>
-      <div class="md-chip-sub">kg CO₂e/kg LW</div>
+      <div class="md-chip-sub">kg CO\u2082e/kg LW</div>
     </div>
     <div class="md-carbon-chip">
       <div class="md-chip-label">Footprint (CW)</div>
       <div class="md-chip-value">${lca.fpCW.toFixed(2)}</div>
-      <div class="md-chip-sub">kg CO₂e/kg CW</div>
+      <div class="md-chip-sub">kg CO\u2082e/kg CW</div>
     </div>
     <div class="md-carbon-chip">
       <div class="md-chip-label">vs B+LNZ ${BNLZ_LW}</div>
@@ -2219,8 +2266,28 @@ function renderMobDetailCarbon(mob, estLW) {
       <div class="md-chip-sub">${vsBNLZ >= 0 ? 'below' : 'above'} benchmark</div>
     </div>`;
 
-  const parts = [`${origin}-origin ${cls}`, `${season} drop`, `${defaultTargetLW} kg LW target @ ${defaultAdg} g/d`];
-  note.textContent = `Default scenario: ${parts.join(' · ')}. Open the planner to change targets.`;
+  // Clear explanation of what these numbers represent.
+  const lede = $('mdCarbonLede');
+  if (lede) {
+    lede.innerHTML = `This is a <strong>forward projection</strong> \u2014 the carbon footprint this mob will carry <strong>if</strong> it finishes at <strong>${defaultTargetLW}&nbsp;kg LW</strong> with growth continuing at <strong>${defaultAdg}&nbsp;g/day</strong> from today. Adjust the targets in <strong>Supply Planner</strong> to model other scenarios.`;
+  }
+
+  // Assumption chips — visible, labelled so the viewer sees every input.
+  const assump = $('mdCarbonAssump');
+  if (assump) {
+    const chips = [
+      { k: 'Class',   v: cls },
+      { k: 'Origin',  v: origin + '-origin' },
+      { k: 'Season',  v: season + ' drop' },
+      { k: 'Birth wt', v: '40 kg' },
+      { k: 'Target',  v: defaultTargetLW + ' kg LW' },
+      { k: 'ADG',     v: defaultAdg + ' g/day' },
+      { k: 'Finishing', v: '~' + months + ' mo' }
+    ];
+    assump.innerHTML = chips.map(c => `<span class="md-assump-chip"><strong>${c.k}</strong>${c.v}</span>`).join('');
+  }
+
+  note.textContent = `LCA: AgResearch RE450/2024/054 \u00b7 ${origin}-origin ${cls}, ${season} drop, 40 kg birth weight, finishing at ~${months} months`;
 }
 
 // ---- Mob options (Phase 3c) ----
