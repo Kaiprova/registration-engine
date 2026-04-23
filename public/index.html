@@ -1870,6 +1870,20 @@ function renderWeighChart(history) {
   const wrap = $('mdChartWrap');
   if (mdChartInstance) { mdChartInstance.destroy(); mdChartInstance = null; }
 
+  // Fallback: if no history rows yet but mob has its own avg_weight, synthesise
+  // a single point from mobs.updated_at. Covers pre-Phase-2a uploads and
+  // future gaps where the backfill hasn't run.
+  if ((!history || history.length === 0) && mdMob && mdMob.avg_weight) {
+    const d = mdMob.updated_at || mdMob.created_at;
+    if (d) {
+      history = [{
+        weigh_date: new Date(d).toISOString().slice(0, 10),
+        avg_lw: Number(mdMob.avg_weight),
+        head_count: mdMob.head_count
+      }];
+    }
+  }
+
   if (!history || history.length === 0) {
     wrap.innerHTML = `<div class="md-chart-empty">No weigh data yet. Upload a livestock weighing CSV on <strong>My Mobs</strong> to build the curve.</div>`;
     return;
