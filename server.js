@@ -163,7 +163,9 @@ app.post('/api/farms/:id/animals/upload', requireAuth, upload.single('file'), as
       ...(avg_weight !== null ? { avg_weight } : {})
     };
 
-    const { data, error } = await getSupabase().from('mobs').insert([mob]).select();
+    // Requires a unique constraint on (farm_id, mob_name) in Supabase:
+    //   ALTER TABLE mobs ADD CONSTRAINT mobs_farm_id_mob_name_key UNIQUE (farm_id, mob_name);
+    const { data, error } = await getSupabase().from('mobs').upsert([mob], { onConflict: 'farm_id,mob_name' }).select();
     if (error) return res.status(500).json({ error: error.message });
     return res.json({
       inserted: data.length,
@@ -216,7 +218,9 @@ app.post('/api/farms/:id/animals/upload', requireAuth, upload.single('file'), as
     head_count: g.count
   }));
 
-  const { data, error } = await getSupabase().from('mobs').insert(mobs).select();
+  // Requires a unique constraint on (farm_id, mob_name) in Supabase:
+  //   ALTER TABLE mobs ADD CONSTRAINT mobs_farm_id_mob_name_key UNIQUE (farm_id, mob_name);
+  const { data, error } = await getSupabase().from('mobs').upsert(mobs, { onConflict: 'farm_id,mob_name' }).select();
   if (error) return res.status(500).json({ error: error.message });
   res.json({ inserted: data.length, mobs: data.map(m => ({ name: m.mob_name, head_count: m.head_count })), total: rows.length });
 });
