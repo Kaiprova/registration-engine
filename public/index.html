@@ -880,8 +880,10 @@
     .sb-signout:hover { background: rgba(195, 167, 106, 0.15); }
     .app-main {
       overflow-y: auto;
+      overflow-x: hidden;
       background: #FFFFFF;
       padding: 24px 28px 40px;
+      min-width: 0;
     }
     .app-view { display: none; }
     .app-view.visible { display: block; }
@@ -1062,17 +1064,21 @@
       text-align: center;
     }
 
-    /* 2-column grid: stacked below 1200px, side-by-side above */
+    /* 2-column grid: stacked below 1400px, side-by-side above.
+       Higher breakpoint so laptop viewports don't get squeezed. */
     .md-two-col { display: block; }
     .md-two-col > .md-section { margin-bottom: 1rem; }
-    @media (min-width: 1200px) {
+    @media (min-width: 1400px) {
       .md-two-col {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 1rem;
         margin-bottom: 1rem;
       }
-      .md-two-col > .md-section { margin-bottom: 0; }
+      .md-two-col > .md-section {
+        margin-bottom: 0;
+        min-width: 0;    /* critical: allow section to shrink inside grid cell */
+      }
     }
 
     .md-carbon-grid {
