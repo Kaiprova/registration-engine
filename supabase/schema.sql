@@ -38,3 +38,27 @@ create table if not exists animals (
   sex         text,
   created_at  timestamptz not null default now()
 );
+
+-- ───────────────────────────────────────────────────────────────────
+-- Phase 2a (23 Apr 2026) — weigh_history + attrition tables
+-- Live migration SQL lives in supabase/phase2_migration.sql
+-- ───────────────────────────────────────────────────────────────────
+
+create table if not exists weigh_history (
+  id          uuid primary key default gen_random_uuid(),
+  mob_id      uuid not null references mobs(id) on delete cascade,
+  weigh_date  date not null,
+  avg_lw      numeric,
+  head_count  integer,
+  created_at  timestamptz not null default now(),
+  unique (mob_id, weigh_date)
+);
+
+create table if not exists attrition (
+  id          uuid primary key default gen_random_uuid(),
+  mob_id      uuid not null references mobs(id) on delete cascade,
+  event_date  date not null,
+  reason      text,
+  head_count  integer default 1,
+  created_at  timestamptz not null default now()
+);

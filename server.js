@@ -102,6 +102,7 @@ app.post('/api/farms/:id/animals/upload', requireAuth, upload.single('file'), as
 
   let lineIndex = 0;
   let metaName = null;
+  let metaDate = null;
 
   while (lineIndex < allLines.length && metaPattern.test(allLines[lineIndex])) {
     const line = allLines[lineIndex];
@@ -111,6 +112,7 @@ app.post('/api/farms/:id/animals/upload', requireAuth, upload.single('file'), as
     // trim() first so \r doesn't sit after the commas and fool the regex anchor.
     const value = line.slice(colonIdx + 1).trim().replace(/,+$/, '').trim();
     if (key === 'name') metaName = value;
+    if (key === 'date') metaDate = value;
     lineIndex++;
   }
 
@@ -168,10 +170,24 @@ app.post('/api/farms/:id/animals/upload', requireAuth, upload.single('file'), as
     //   ALTER TABLE mobs ADD CONSTRAINT mobs_farm_id_mob_name_key UNIQUE (farm_id, mob_name);
     const { data, error } = await getSupabase().from('mobs').upsert([mob], { onConflict: 'farm_id,mob_name' }).select();
     if (error) return res.status(500).json({ error: error.message });
+
+    // Phase 2a: record this upload as a weigh_history point.
+    // Prefer the Date: metadata line over today; fall back to today if malformed.
+    const weighDate = normaliseWeighDate(metaDate) || new Date().toISOString().slice(0, 10);
+    if (data && data[0] && avg_weight !== null) {
+      await getSupabase()
+        .from('weigh_history')
+        .upsert(
+          { mob_id: data[0].id, weigh_date: weighDate, avg_lw: avg_weight, head_count },
+          { onConflict: 'mob_id,weigh_date' }
+        );
+    }
+
     return res.json({
       inserted: data.length,
       mobs: data.map(m => ({ name: m.mob_name, head_count: m.head_count })),
       total: head_count,
+      weigh_date: weighDate,
       ...(avg_weight !== null ? { avg_weight } : {})
     });
   }
@@ -225,6 +241,11 @@ app.post('/api/farms/:id/animals/upload', requireAuth, upload.single('file'), as
   //   ALTER TABLE mobs ADD CONSTRAINT mobs_farm_id_mob_name_key UNIQUE (farm_id, mob_name);
   const { data, error } = await getSupabase().from('mobs').upsert(mobs, { onConflict: 'farm_id,mob_name' }).select();
   if (error) return res.status(500).json({ error: error.message });
+
+  // Phase 2a: the standard-CSV path has no per-mob avg weight today, so we skip
+  // the weigh_history insert here. When that CSV format carries weights,
+  // extend this to insert per-mob rows keyed by today's date.
+
   res.json({ inserted: data.length, mobs: data.map(m => ({ name: m.mob_name, head_count: m.head_count })), total: rows.length });
 });
 
@@ -240,7 +261,7 @@ app.get('/api/farms/:id/animals', requireAuth, async (req, res) => {
 
   const { data, error } = await getSupabase()
     .from('mobs')
-    .select('*, weigh_events(*)')
+    .select('*')
     .eq('farm_id', req.params.id);
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
@@ -271,6 +292,75 @@ app.get('/api/stats', requireAuth, async (req, res) => {
   }
 
   res.json({ farms: farmCount, mobs: mobCount });
+});
+
+// Phase 2a: normalise various date formats from livestock weighing CSVs.
+function normaliseWeighDate(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  const s = raw.trim();
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (iso) return s;
+  const dmy = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/.exec(s);
+  if (dmy) {
+    const [, d, m, y] = dmy;
+    const dd = d.padStart(2, '0'), mm = m.padStart(2, '0');
+    if (+mm < 1 || +mm > 12 || +dd < 1 || +dd > 31 || +y < 2000) return null;
+    return `${y}-${mm}-${dd}`;
+  }
+  const months = { jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+                   jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12' };
+  const mon = /^(\d{1,2})[\s\-]+([A-Za-z]{3,})[\s\-]+(\d{4})$/.exec(s);
+  if (mon) {
+    const [, d, mName, y] = mon;
+    const mm = months[mName.slice(0, 3).toLowerCase()];
+    if (!mm || +y < 2000) return null;
+    return `${y}-${mm}-${d.padStart(2, '0')}`;
+  }
+  return null;
+}
+
+// Helper - does this mob belong to a farm owned by req.user?
+async function loadOwnedMob(supabase, mobId, userId) {
+  const { data } = await supabase
+    .from('mobs')
+    .select('id, farm_id, mob_name, breed, sex, drop_type, head_count, avg_weight, updated_at, created_at, farms!inner(owner_id, farm_name, region, farm_type)')
+    .eq('id', mobId)
+    .eq('farms.owner_id', userId)
+    .single();
+  return data;
+}
+
+// GET /api/mobs/:id - single mob, for the detail view
+app.get('/api/mobs/:id', requireAuth, async (req, res) => {
+  const mob = await loadOwnedMob(getSupabase(), req.params.id, req.user.id);
+  if (!mob) return res.status(404).json({ error: 'Mob not found' });
+  res.json(mob);
+});
+
+// GET /api/mobs/:id/weigh-history - time series for the chart
+app.get('/api/mobs/:id/weigh-history', requireAuth, async (req, res) => {
+  const mob = await loadOwnedMob(getSupabase(), req.params.id, req.user.id);
+  if (!mob) return res.status(404).json({ error: 'Mob not found' });
+  const { data, error } = await getSupabase()
+    .from('weigh_history')
+    .select('weigh_date, avg_lw, head_count')
+    .eq('mob_id', req.params.id)
+    .order('weigh_date', { ascending: true });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data || []);
+});
+
+// GET /api/mobs/:id/attrition - loss events
+app.get('/api/mobs/:id/attrition', requireAuth, async (req, res) => {
+  const mob = await loadOwnedMob(getSupabase(), req.params.id, req.user.id);
+  if (!mob) return res.status(404).json({ error: 'Mob not found' });
+  const { data, error } = await getSupabase()
+    .from('attrition')
+    .select('event_date, reason, head_count')
+    .eq('mob_id', req.params.id)
+    .order('event_date', { ascending: false });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data || []);
 });
 
 app.get('*', (_req, res) => res.sendFile('index.html', { root: 'public' }));

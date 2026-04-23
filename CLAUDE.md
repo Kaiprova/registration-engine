@@ -145,3 +145,22 @@ Style tokens reused from main platform: `--kp-pasture-mid` for sidebar bg, Inter
 ## Next: Phase 2 — Mob Detail
 
 Click a mob row → full detail view with Chart.js weigh-history curve, attrition log, carbon panel, and a "Plan supply" button that opens the existing planner pre-loaded with that mob. Real Supabase weigh data only (no demo).
+
+## Phase 2a — Weigh history + mob API (23 Apr 2026)
+
+**New Supabase tables** (live migration in `supabase/phase2_migration.sql`):
+- `weigh_history` — one row per CSV upload per mob. Columns: `mob_id`, `weigh_date`, `avg_lw`, `head_count`. Unique on `(mob_id, weigh_date)` so re-uploads replace, not duplicate.
+- `attrition` — mob loss events. No write-path UI yet (deferred).
+
+**server.js changes:**
+- CSV upload (livestock weighing format) now captures `Date:` metadata and writes a `weigh_history` row after each successful mob upsert. Date parser accepts ISO, `dd/mm/yyyy`, `dd-mm-yyyy`, `dd Mon yyyy`.
+- New endpoints:
+  - `GET /api/mobs/:id` — single mob + farm info for the detail view
+  - `GET /api/mobs/:id/weigh-history` — ordered asc by date (for Chart.js)
+  - `GET /api/mobs/:id/attrition` — ordered desc by date
+- All three use `loadOwnedMob()` which joins `farms!inner(owner_id)` to scope to the authenticated farmer.
+- Removed the broken `weigh_events(*)` join from `GET /api/farms/:id/animals` (that table never existed).
+
+## Next: Phase 2b — Mob Detail frontend
+
+Add Chart.js 4.4 CDN. New `sectionMobDetail` app-view: summary card (breed/sex/drop/head/avg/last upload/farm/region), weigh history line chart, carbon panel (uses existing LCA engine), attrition log, and a "Plan supply" button that opens the existing planner pre-loaded with the mob. Update mob row click in My Mobs to open the detail view (not the planner directly).
