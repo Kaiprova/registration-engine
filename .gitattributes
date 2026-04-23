@@ -1,0 +1,18 @@
+# Normalise all text files to LF on commit. Working-tree checkout gets OS native via autocrlf.
+# This kills the Windows CRLF vs LF noise that was dirtying every file in git status.
+* text=auto eol=lf
+
+# Explicit binary — never touch these
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.gif     binary
+*.ico     binary
+*.pdf     binary
+*.zip     binary
+*.woff    binary
+*.woff2   binary
+
+# Windows-only files keep CRLF
+*.bat     text eol=crlf
+*.cmd     text eol=crlf
