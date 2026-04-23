@@ -160,6 +160,7 @@ app.post('/api/farms/:id/animals/upload', requireAuth, upload.single('file'), as
       sex: null,
       drop_type: null,
       head_count,
+      updated_at: new Date().toISOString(),
       ...(avg_weight !== null ? { avg_weight } : {})
     };
 
@@ -209,13 +210,15 @@ app.post('/api/farms/:id/animals/upload', requireAuth, upload.single('file'), as
     if (!groups[key].sex && sexCol) groups[key].sex = row[sexCol] || null;
   }
 
+  const now = new Date().toISOString();
   const mobs = Object.entries(groups).map(([mobName, g]) => ({
     farm_id: req.params.id,
     mob_name: mobName,
     breed: g.breed,
     sex: g.sex,
     drop_type: null,
-    head_count: g.count
+    head_count: g.count,
+    updated_at: now
   }));
 
   // Requires a unique constraint on (farm_id, mob_name) in Supabase:
