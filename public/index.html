@@ -2280,6 +2280,18 @@ async function saveMobOptions() {
     const updated = await res.json();
     // Merge into in-memory mob (preserves farm join fields loadOwnedMob returns)
     mdMob = { ...mdMob, ...updated };
+
+    // Keep other in-memory caches in sync with the saved overrides.
+    // 1) currentMobs — the My Mobs dashboard list and fallback for sidebar planner.
+    if (Array.isArray(currentMobs)) {
+      const idx = currentMobs.findIndex(m => m.id === mdMob.id);
+      if (idx >= 0) currentMobs[idx] = { ...currentMobs[idx], ...updated };
+    }
+    // 2) plannerMob — the Supply Planner's cached mob reference.
+    if (plannerMob && plannerMob.id === mdMob.id) {
+      plannerMob = { ...plannerMob, ...updated };
+    }
+
     // Re-render carbon panel with the new values immediately
     const avgW = Number(mdMob.avg_weight) || 0;
     const weighRaw = mdMob.updated_at || mdMob.created_at;
