@@ -906,8 +906,9 @@ function renderMobTable(mobs) {
   const rows = mobs.map(mob => {
     const meta = [mob.breed, mob.sex, mob.drop_type].filter(Boolean).join(' · ') || '—';
     const weight = mob.avg_weight ? `${mob.avg_weight} kg avg` : null;
-    const updated = mob.updated_at
-      ? new Date(mob.updated_at).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })
+    const updatedRaw = mob.updated_at || mob.created_at;
+    const updated = updatedRaw
+      ? new Date(updatedRaw).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })
       : null;
     return `
       <tr>
