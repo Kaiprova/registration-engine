@@ -373,7 +373,7 @@ function normaliseWeighDate(raw) {
 async function loadOwnedMob(supabase, mobId, userId) {
   const { data } = await supabase
     .from('mobs')
-    .select('id, farm_id, mob_name, breed, sex, drop_type, head_count, avg_weight, updated_at, created_at, farms!inner(owner_id, farm_name, region, farm_type)')
+    .select('id, farm_id, mob_name, breed, sex, drop_type, class, origin, birth_date, head_count, avg_weight, updated_at, created_at, farms!inner(owner_id, farm_name, region, farm_type)')
     .eq('id', mobId)
     .eq('farms.owner_id', userId)
     .single();
@@ -486,6 +486,42 @@ app.get('/api/mobs/:id/animals/:eid/weigh-history', requireAuth, async (req, res
     .order('weigh_date', { ascending: true });
   if (error) return res.status(500).json({ error: error.message });
   res.json(data || []);
+});
+
+// PATCH /api/mobs/:id — save farmer-editable options (class/origin/birth_date)
+app.patch('/api/mobs/:id', requireAuth, async (req, res) => {
+  const mob = await loadOwnedMob(getSupabase(), req.params.id, req.user.id);
+  if (!mob) return res.status(404).json({ error: 'Mob not found' });
+
+  const body = req.body || {};
+  const allowedClass  = ['steer', 'heifer', 'bull'];
+  const allowedOrigin = ['dairy', 'beef'];
+
+  const update = { updated_at: new Date().toISOString() };
+  if ('class'  in body) {
+    const v = (body.class  || '').toString().trim().toLowerCase() || null;
+    if (v !== null && !allowedClass.includes(v))  return res.status(400).json({ error: 'class must be steer/heifer/bull' });
+    update.class = v;
+  }
+  if ('origin' in body) {
+    const v = (body.origin || '').toString().trim().toLowerCase() || null;
+    if (v !== null && !allowedOrigin.includes(v)) return res.status(400).json({ error: 'origin must be dairy/beef' });
+    update.origin = v;
+  }
+  if ('birth_date' in body) {
+    const v = body.birth_date;
+    if (v && !/^\d{4}-\d{2}-\d{2}$/.test(v))    return res.status(400).json({ error: 'birth_date must be YYYY-MM-DD' });
+    update.birth_date = v || null;
+  }
+
+  const { data, error } = await getSupabase()
+    .from('mobs')
+    .update(update)
+    .eq('id', req.params.id)
+    .select()
+    .single();
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
 });
 
 app.get('*', (_req, res) => res.sendFile('index.html', { root: 'public' }));

@@ -1199,6 +1199,56 @@
     .md-section.collapsed .md-section-chev { transform: rotate(-90deg); }
     .md-section.collapsed .md-section-body { display: none; }
 
+    /* ---- Mob options form (Phase 3c) ---- */
+    .md-options-hint {
+      font-size: 12px;
+      color: var(--kp-ink-muted);
+      margin-bottom: 0.75rem;
+      line-height: 1.5;
+    }
+    .md-options-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 640px) { .md-options-grid { grid-template-columns: 1fr; } }
+    .md-options-field { display: flex; flex-direction: column; gap: 4px; }
+    .md-options-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--kp-ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .md-options-field select,
+    .md-options-field input[type="date"] {
+      padding: 8px 10px;
+      border: 1px solid var(--kp-border);
+      border-radius: 6px;
+      font-family: var(--kp-sans);
+      font-size: 13px;
+      background: #fff;
+      color: var(--kp-ink);
+    }
+    .md-options-field select:focus,
+    .md-options-field input[type="date"]:focus {
+      outline: none;
+      border-color: var(--kp-pasture-mid);
+      box-shadow: 0 0 0 3px rgba(26, 107, 66, 0.1);
+    }
+    .md-options-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .md-options-status {
+      font-size: 12px;
+      color: var(--kp-ink-muted);
+    }
+    .md-options-status.ok  { color: var(--kp-pasture-mid); font-weight: 600; }
+    .md-options-status.err { color: var(--kp-gold-kraft); font-weight: 600; }
+
     /* ---- Horizontal scroll wrapper: keeps table inside section width ---- */
     .md-animals-scroll {
       overflow-x: auto;
@@ -1214,9 +1264,7 @@
       .md-animals-table th { font-size: 9px; }
       .md-animals-table td { font-size: 11px; }
       .md-animals-eid { font-size: 10px; }
-      .md-animals-table th:nth-child(6),
-      .md-animals-table td:nth-child(6) { display: none; } /* hide Draft col */
-      .md-animals-scroll .md-animals-table { min-width: 460px; }
+      .md-animals-scroll .md-animals-table { min-width: 440px; }
     }
 
     .planner-extrap {
@@ -1641,12 +1689,53 @@
             </div>
           </div>
 
+          <div class="md-section" id="mdOptionsSection">
+            <div class="md-section-head" id="mdOptionsToggle" role="button" aria-expanded="true">
+              <h2>Mob options</h2>
+              <span class="md-section-chev" aria-hidden="true">&#9662;</span>
+            </div>
+            <div class="md-section-body">
+              <p class="md-options-hint">These override the auto-derived values used by the carbon calculator. Save to persist.</p>
+              <div class="md-options-grid">
+                <label class="md-options-field">
+                  <span class="md-options-label">Class</span>
+                  <select id="mdOptClass">
+                    <option value="">— auto from sex —</option>
+                    <option value="steer">Steer</option>
+                    <option value="heifer">Heifer</option>
+                    <option value="bull">Bull</option>
+                  </select>
+                </label>
+                <label class="md-options-field">
+                  <span class="md-options-label">Birth date</span>
+                  <input type="date" id="mdOptBirth" />
+                </label>
+                <label class="md-options-field">
+                  <span class="md-options-label">Origin</span>
+                  <select id="mdOptOrigin">
+                    <option value="">— auto from breed —</option>
+                    <option value="dairy">Dairy</option>
+                    <option value="beef">Beef</option>
+                  </select>
+                </label>
+              </div>
+              <div class="md-options-actions">
+                <button class="md-btn md-btn-primary" id="mdOptSave">Save options</button>
+                <span class="md-options-status" id="mdOptStatus"></span>
+              </div>
+            </div>
+          </div>
+
           <div class="md-section">
             <h2>Weigh history</h2>
             <div class="md-chart-wrap" id="mdChartWrap">
               <canvas id="mdChart"></canvas>
             </div>
           </div>
+
+          <div class="md-section">
+            <h2>Carbon footprint</h2>
+            <div class="md-carbon-grid" id="mdCarbon"></div>
 
           <div class="md-section" id="mdAnimalsSection">
             <div class="md-section-head" id="mdAnimalsToggle" role="button" aria-expanded="true">
@@ -1658,10 +1747,6 @@
               <div class="md-animals-scroll"><div id="mdAnimals"></div></div>
             </div>
           </div>
-
-          <div class="md-section">
-            <h2>Carbon footprint</h2>
-            <div class="md-carbon-grid" id="mdCarbon"></div>
             <div class="md-carbon-note" id="mdCarbonNote"></div>
           </div>
 
@@ -1936,6 +2021,7 @@ let mdChartInstance = null;
 
 async function openMobDetail(mob) {
   mdMob = mob;
+  populateMobOptions(mob);
 
   // Static fields from the mob row we clicked (fast render)
   const breed = mob.breed || '';
@@ -2137,6 +2223,83 @@ function renderMobDetailCarbon(mob, estLW) {
   note.textContent = `Default scenario: ${parts.join(' · ')}. Open the planner to change targets.`;
 }
 
+// ---- Mob options (Phase 3c) ----
+(function wireMobOptionsToggle() {
+  const toggle = document.getElementById('mdOptionsToggle');
+  const section = document.getElementById('mdOptionsSection');
+  if (!toggle || !section) return;
+  // Default collapsed on narrow screens
+  if (window.matchMedia && window.matchMedia('(max-width: 640px)').matches) {
+    section.classList.add('collapsed');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+  toggle.addEventListener('click', (e) => {
+    // Don't collapse if the click was on one of the form fields inside
+    if (e.target.closest('.md-section-body')) return;
+    section.classList.toggle('collapsed');
+    toggle.setAttribute('aria-expanded', section.classList.contains('collapsed') ? 'false' : 'true');
+  });
+})();
+
+function populateMobOptions(mob) {
+  if (!mob) return;
+  $('mdOptClass').value  = mob.class  || '';
+  $('mdOptOrigin').value = mob.origin || '';
+  $('mdOptBirth').value  = mob.birth_date ? String(mob.birth_date).slice(0, 10) : '';
+  $('mdOptStatus').textContent = '';
+  $('mdOptStatus').className = 'md-options-status';
+}
+
+async function saveMobOptions() {
+  if (!mdMob) return;
+  const status = $('mdOptStatus');
+  const btn = $('mdOptSave');
+  status.textContent = 'Saving…';
+  status.className = 'md-options-status';
+  btn.disabled = true;
+  try {
+    const body = {
+      class:      $('mdOptClass').value  || null,
+      origin:     $('mdOptOrigin').value || null,
+      birth_date: $('mdOptBirth').value  || null
+    };
+    const res = await fetch(`/api/mobs/${mdMob.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${currentSession.access_token}`
+      },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      status.textContent = err.error || 'Save failed';
+      status.className = 'md-options-status err';
+      return;
+    }
+    const updated = await res.json();
+    // Merge into in-memory mob (preserves farm join fields loadOwnedMob returns)
+    mdMob = { ...mdMob, ...updated };
+    // Re-render carbon panel with the new values immediately
+    const avgW = Number(mdMob.avg_weight) || 0;
+    const weighRaw = mdMob.updated_at || mdMob.created_at;
+    const daysSince = weighRaw ? Math.max(0, Math.floor((Date.now() - new Date(weighRaw)) / 86400000)) : 0;
+    const estLW = avgW ? Math.round(avgW + daysSince * 0.8) : 0;
+    renderMobDetailCarbon(mdMob, estLW || avgW);
+    status.textContent = 'Saved';
+    status.className = 'md-options-status ok';
+    setTimeout(() => { status.textContent = ''; status.className = 'md-options-status'; }, 2500);
+  } catch {
+    status.textContent = 'Network error';
+    status.className = 'md-options-status err';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+const _btnMdOptSave = document.getElementById('mdOptSave');
+if (_btnMdOptSave) _btnMdOptSave.addEventListener('click', saveMobOptions);
+
 // ---- Animals table (Phase 3b) ----
 let animalsData = [];
 let animalsSort = { key: 'latest_weight', dir: 'desc' };
@@ -2198,9 +2361,8 @@ function drawAnimalsTable() {
       <td class="md-animals-adg ${adgCls(a.recent_adg)}">${adgTxt(a.recent_adg)}</td>
       <td class="md-animals-adg ${adgCls(a.lifetime_adg)}">${adgTxt(a.lifetime_adg)}</td>
       <td class="md-animals-num">${a.n_weighs}</td>
-      <td>${a.draft ? escapeAttr(a.draft) : ''}</td>
     </tr>
-    ${a.eid === expandedEid ? `<tr><td colspan="6" class="md-animals-detail" id="mdAnimalDetail-${cssEscape(a.eid)}"><div class="md-empty">Loading…</div></td></tr>` : ''}
+    ${a.eid === expandedEid ? `<tr><td colspan="5" class="md-animals-detail" id="mdAnimalDetail-${cssEscape(a.eid)}"><div class="md-empty">Loading…</div></td></tr>` : ''}
   `).join('');
 
   root.innerHTML = `
@@ -2212,7 +2374,6 @@ function drawAnimalsTable() {
           <th class="${classForHeader('recent_adg')}" data-sort="recent_adg">Recent ADG</th>
           <th class="${classForHeader('lifetime_adg')}" data-sort="lifetime_adg">Lifetime ADG</th>
           <th class="${classForHeader('n_weighs')}" data-sort="n_weighs"># weighs</th>
-          <th class="${classForHeader('draft')}" data-sort="draft">Draft</th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
@@ -2410,17 +2571,26 @@ function lcaCalcExtended(season, cls, bw, months, lwg, origin) {
 }
 
 function mobSeason(mob) {
+  // Farmer-set birth_date wins; otherwise fall back to drop_type heuristic.
+  if (mob.birth_date) {
+    const m = Number(String(mob.birth_date).slice(5, 7));
+    if (m >= 8 && m <= 11) return 'spring';   // NZ spring calving
+    if (m >= 2 && m <= 5)  return 'autumn';   // NZ autumn calving
+  }
   const d = (mob.drop_type || '').toLowerCase();
   if (d.includes('spring')) return 'spring';
   return 'autumn';
 }
 function mobClass(mob) {
+  // Override wins if set
+  if (mob.class && ['steer','heifer','bull'].includes(mob.class)) return mob.class;
   const s = (mob.sex || '').toLowerCase();
   if (s.includes('bull')) return 'bull';
   if (s.includes('heifer') || s.includes('cow')) return 'heifer';
   return 'steer';
 }
 function mobOrigin(mob) {
+  if (mob.origin === 'beef' || mob.origin === 'dairy') return mob.origin;
   const b = (mob.breed || '').toLowerCase();
   const beef = ['angus','hereford','murray','simmental','charolais','wagyu','limousin','beef'];
   if (beef.some(k => b.includes(k))) return 'beef';
