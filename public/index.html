@@ -1372,8 +1372,21 @@ document.querySelectorAll('.sb-nav').forEach(btn => {
   btn.addEventListener('click', () => {
     const view = btn.dataset.view;
     if (!view) return;
-    if (view === 'sectionPlanner' && !plannerMob) {
-      showSection('sectionDashboard');
+    if (view === 'sectionPlanner') {
+      // Auto-select the first mob with weigh data if none is selected yet
+      if (!plannerMob && currentMobs && currentMobs.length) {
+        const withWeigh = currentMobs.find(m => Number(m.avg_weight) > 0);
+        if (withWeigh) {
+          openPlanner(withWeigh);
+          return;
+        }
+      }
+      if (plannerMob) {
+        openPlanner(plannerMob); // re-render with current inputs
+        return;
+      }
+      // No mobs at all OR none with weigh data — still open, recalcPlanner shows message
+      showSection('sectionPlanner');
       return;
     }
     showSection(view);
@@ -1677,7 +1690,24 @@ function openPlanner(mob) {
 }
 
 function recalcPlanner() {
-  if (!plannerMob) return;
+  if (!plannerMob) {
+    const out = $('plannerOutput');
+    if (out) out.innerHTML = `
+      <div class="planner-warn">
+        Select a mob from <strong>My Mobs</strong> to run the supply planner. Click any mob row to load it here.
+      </div>`;
+    const f = $('plannerFooter');
+    if (f) f.textContent = '';
+    $('plannerMobName').textContent = 'Supply Planner';
+    $('plannerMobMeta').textContent = 'No mob selected';
+    $('plannerEstLW').textContent = '—';
+    $('plannerHead').textContent = '—';
+    $('plannerWeighDate').textContent = '—';
+    $('plannerEstLWSub').textContent = '';
+    $('plannerHeadSub').textContent = '';
+    $('plannerWeighSub').textContent = '';
+    return;
+  }
   const mob = plannerMob;
   const head = mob.head_count || 0;
   const avgW = Number(mob.avg_weight) || 0;
@@ -1998,7 +2028,6 @@ $('btnSignOut').addEventListener('click', async () => {
 
 // ---- Planner input handlers ----
 $('btnPlannerBack').addEventListener('click', () => {
-  plannerMob = null;
   showSection('sectionDashboard');
 });
 ['plannerAdg', 'plannerTargetLW', 'plannerPrice'].forEach(id => {
