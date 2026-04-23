@@ -542,6 +542,200 @@
       font-size: 11px;
       color: var(--kp-pasture-deep);
     }
+
+    /* ---- Clickable mob row ---- */
+    .mob-table tbody tr { cursor: pointer; transition: background 0.12s; }
+    .mob-table tbody tr:hover { background: rgba(26, 107, 66, 0.04); }
+    .mob-table tbody tr:hover .mob-name-cell { color: var(--kp-pasture-mid); }
+
+    /* ================================================================
+       SUPPLY PLANNER
+    ================================================================ */
+    .planner-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      color: var(--kp-pasture-mid);
+      font-family: var(--kp-sans);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 0;
+      margin-bottom: 1.25rem;
+    }
+    .planner-back:hover { color: var(--kp-pasture-deep); }
+
+    .planner-hdr { margin-bottom: 1.25rem; }
+    .planner-hdr .planner-sub {
+      font-size: 13px;
+      color: var(--kp-ink-muted);
+      margin-top: 2px;
+    }
+
+    .planner-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    @media (max-width: 520px) {
+      .planner-summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .planner-summary-grid > :last-child { grid-column: span 2; }
+    }
+    .planner-chip {
+      background: white;
+      border: 1px solid var(--kp-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .planner-chip-label {
+      font-size: 10px;
+      color: var(--kp-ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+    }
+    .planner-chip-value {
+      font-family: var(--kp-serif);
+      font-size: 1.5rem;
+      font-weight: 500;
+      color: var(--kp-pasture-mid);
+      line-height: 1;
+      margin-top: 4px;
+    }
+    .planner-chip-sub {
+      font-size: 11px;
+      color: var(--kp-ink-muted);
+      margin-top: 4px;
+    }
+
+    .planner-control { margin-bottom: 1.25rem; }
+    .planner-control-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .planner-control-head .planner-control-value {
+      font-family: var(--kp-serif);
+      font-size: 1.1rem;
+      color: var(--kp-pasture-mid);
+      font-weight: 500;
+    }
+    .planner-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--kp-border);
+      outline: none;
+    }
+    .planner-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--kp-pasture-mid);
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 0 0 1px var(--kp-pasture-mid);
+    }
+    .planner-slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--kp-pasture-mid);
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 0 0 1px var(--kp-pasture-mid);
+    }
+    .planner-scale {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--kp-ink-muted);
+      margin-top: 4px;
+    }
+
+    .planner-input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    @media (max-width: 520px) {
+      .planner-input-row { grid-template-columns: 1fr; }
+    }
+
+    .planner-result {
+      background: rgba(26, 107, 66, 0.06);
+      border: 1px solid rgba(26, 107, 66, 0.25);
+      border-radius: var(--kp-radius);
+      padding: 1.25rem;
+    }
+    .planner-result-label {
+      font-size: 10px;
+      color: var(--kp-pasture-mid);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .planner-result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 520px) {
+      .planner-result-grid { grid-template-columns: 1fr; }
+    }
+    .planner-result-chip {
+      background: white;
+      border: 1px solid var(--kp-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .planner-result-chip .planner-chip-value { font-size: 1.35rem; }
+    .planner-result-total {
+      text-align: center;
+      padding-top: 0.75rem;
+      border-top: 1px solid rgba(26, 107, 66, 0.25);
+    }
+    .planner-result-money {
+      font-family: var(--kp-serif);
+      font-size: 2.25rem;
+      font-weight: 500;
+      color: var(--kp-pasture-deep);
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .planner-result-break {
+      font-size: 13px;
+      color: var(--kp-ink-muted);
+      margin-top: 6px;
+    }
+
+    .planner-warn {
+      background: #FFF4E5;
+      border: 1px solid #F3CD8D;
+      color: #7A4A00;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .planner-footer {
+      font-size: 11px;
+      color: var(--kp-ink-muted);
+      margin-top: 1rem;
+      line-height: 1.55;
+    }
   </style>
 </head>
 <body>
@@ -775,6 +969,69 @@
 
   </section>
 
+  <!-- ================================================================
+       SUPPLY PLANNER
+  ================================================================ -->
+  <section id="sectionPlanner" class="section">
+
+    <button class="planner-back" id="btnPlannerBack">← Back to dashboard</button>
+
+    <div class="planner-hdr">
+      <h1 id="plannerMobName">—</h1>
+      <p class="planner-sub" id="plannerMobMeta"></p>
+    </div>
+
+    <div class="card">
+      <div class="planner-summary-grid">
+        <div class="planner-chip">
+          <div class="planner-chip-label">Est. current weight</div>
+          <div class="planner-chip-value" id="plannerEstLW">—</div>
+          <div class="planner-chip-sub" id="plannerEstLWSub"></div>
+        </div>
+        <div class="planner-chip">
+          <div class="planner-chip-label">Head</div>
+          <div class="planner-chip-value" id="plannerHead">—</div>
+          <div class="planner-chip-sub" id="plannerHeadSub"></div>
+        </div>
+        <div class="planner-chip">
+          <div class="planner-chip-label">Weighed</div>
+          <div class="planner-chip-value" style="font-size:1.1rem" id="plannerWeighDate">—</div>
+          <div class="planner-chip-sub" id="plannerWeighSub"></div>
+        </div>
+      </div>
+
+      <div class="planner-control">
+        <div class="planner-control-head">
+          <label style="margin:0">Average Daily Gain</label>
+          <span class="planner-control-value"><span id="plannerAdgVal">800</span> g/day</span>
+        </div>
+        <input type="range" min="500" max="2000" step="10" value="800" id="plannerAdg" class="planner-slider" />
+        <div class="planner-scale"><span>500 g/d</span><span>1200 g/d</span><span>2000 g/d</span></div>
+      </div>
+
+      <div class="planner-input-row">
+        <div>
+          <label>Target finishing weight (kg LW)</label>
+          <input type="number" id="plannerTargetLW" min="300" max="800" step="10" value="600" />
+        </div>
+        <div>
+          <label>Schedule price ($/kg CW)</label>
+          <input type="number" id="plannerPrice" min="0" step="0.05" value="8.00" />
+        </div>
+      </div>
+
+      <div id="plannerOutput"></div>
+
+      <div class="planner-footer" id="plannerFooter"></div>
+    </div>
+
+    <div class="card" style="background: var(--kp-paper);">
+      <h2 style="font-size:1.05rem;margin-bottom:0.5rem">How this works</h2>
+      <p style="font-size:13px;margin:0">We take your last weigh, project growth forward at your chosen daily gain, and show when the mob will reach target weight plus projected value at a dressing percentage of 53%. Change the ADG, target weight or price to model different scenarios.</p>
+    </div>
+
+  </section>
+
 </main>
 
 <script type="module">
@@ -786,7 +1043,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_FGT8ihbVKO7F9nPNQCsIFQ__ATCkcTA';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const $ = id => document.getElementById(id);
-const SECTIONS = ['sectionLogin', 'sectionMagicSent', 'sectionRegister', 'sectionDashboard'];
+const SECTIONS = ['sectionLogin', 'sectionMagicSent', 'sectionRegister', 'sectionDashboard', 'sectionPlanner'];
 
 function showSection(id) {
   SECTIONS.forEach(s => $(s).classList.remove('visible'));
@@ -801,6 +1058,8 @@ function setAlert(id, msg, type = 'info') {
 let currentSession = null;
 let currentFarm = null;
 let wizardData = {};
+let currentMobs = [];
+let plannerMob = null;
 
 // ---- Bootstrap ----
 async function init() {
@@ -868,6 +1127,7 @@ async function loadDashboard(farm, token) {
   });
   if (!res.ok) return;
   const mobs = await res.json();
+  currentMobs = mobs;
 
   const totalHead = mobs.reduce((sum, m) => sum + (m.head_count || 0), 0);
   $('statMobs').textContent = mobs.length;
@@ -911,7 +1171,7 @@ function renderMobTable(mobs) {
       ? new Date(updatedRaw).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })
       : null;
     return `
-      <tr>
+      <tr data-mob-id="${escHtml(mob.id)}">
         <td>
           <div class="mob-name-cell">${escHtml(mob.mob_name)}</div>
           ${weight ? `<div class="mob-meta-cell">${escHtml(weight)}</div>` : ''}
@@ -939,6 +1199,128 @@ function renderMobTable(mobs) {
         <tbody>${rows}</tbody>
       </table>
     </div>`;
+
+  container.querySelectorAll('tr[data-mob-id]').forEach(tr => {
+    tr.addEventListener('click', () => {
+      const mob = currentMobs.find(m => m.id === tr.dataset.mobId);
+      if (mob) openPlanner(mob);
+    });
+  });
+}
+
+// ---- Supply Planner ----
+const DRESS = 0.53;
+
+function defaultTargetLW(mob) {
+  const sex = (mob.sex || '').toLowerCase();
+  const drop = (mob.drop_type || '').toLowerCase();
+  if (sex.includes('heifer') || sex.includes('cow') || drop.includes('dairy')) return 500;
+  return 600;
+}
+
+function openPlanner(mob) {
+  plannerMob = mob;
+  const sex = mob.sex || '';
+  const breed = mob.breed || '';
+  const drop = mob.drop_type || '';
+  const metaParts = [breed, sex, drop].filter(Boolean).join(' · ') || 'Mob';
+
+  $('plannerMobName').textContent = mob.mob_name || 'Mob';
+  $('plannerMobMeta').textContent = metaParts;
+
+  $('plannerAdg').value = 800;
+  $('plannerAdgVal').textContent = 800;
+  $('plannerTargetLW').value = defaultTargetLW(mob);
+  $('plannerPrice').value = '8.00';
+
+  recalcPlanner();
+  showSection('sectionPlanner');
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+function recalcPlanner() {
+  if (!plannerMob) return;
+  const mob = plannerMob;
+  const head = mob.head_count || 0;
+  const avgW = Number(mob.avg_weight) || 0;
+  const weighRaw = mob.updated_at || mob.created_at;
+  const weighDate = weighRaw ? new Date(weighRaw) : null;
+  const daysSince = weighDate ? Math.max(0, Math.floor((Date.now() - weighDate) / 86400000)) : 0;
+
+  const adg = +$('plannerAdg').value;
+  $('plannerAdgVal').textContent = adg;
+  const adgKg = adg / 1000;
+  const targetLW = +$('plannerTargetLW').value || 0;
+  const price = +$('plannerPrice').value || 0;
+
+  const estLW = avgW ? Math.round(avgW + daysSince * adgKg) : 0;
+
+  $('plannerEstLW').textContent = avgW ? `${estLW} kg` : '—';
+  $('plannerEstLWSub').textContent = avgW
+    ? `${avgW} kg weighed · +${daysSince}d growth`
+    : 'No weigh data yet';
+  $('plannerHead').textContent = head.toLocaleString();
+  $('plannerHeadSub').textContent = `@ $${price.toFixed(2)}/kg CW`;
+  $('plannerWeighDate').textContent = weighDate
+    ? weighDate.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })
+    : '—';
+  $('plannerWeighSub').textContent = weighDate ? `${daysSince}d ago` : 'Upload a weigh sheet';
+
+  const out = $('plannerOutput');
+
+  if (!avgW) {
+    out.innerHTML = `
+      <div class="planner-warn">
+        This mob has no weigh data yet. Upload a livestock weighing CSV to enable the planner.
+      </div>`;
+    $('plannerFooter').textContent = '';
+    return;
+  }
+
+  if (estLW >= targetLW) {
+    out.innerHTML = `
+      <div class="planner-warn">
+        Mob is already at or above target weight (est. ${estLW} kg LW ≥ target ${targetLW} kg LW). Raise the target to model finishing.
+      </div>`;
+    $('plannerFooter').textContent = `Est. weight ${estLW} kg · $${price.toFixed(2)}/kg CW · 53% dressing`;
+    return;
+  }
+
+  const lwGap = targetLW - estLW;
+  const daysToTarget = adgKg > 0 ? Math.ceil(lwGap / adgKg) : 0;
+  const killDate = new Date(Date.now() + daysToTarget * 86400000);
+  const killDateStr = killDate.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' });
+  const projCW = +(targetLW * DRESS).toFixed(1);
+  const perHead = projCW * price;
+  const mobValue = perHead * head;
+
+  out.innerHTML = `
+    <div class="planner-result">
+      <div class="planner-result-label">Projection at ${adg} g/day → ${targetLW} kg LW</div>
+      <div class="planner-result-grid">
+        <div class="planner-result-chip">
+          <div class="planner-chip-label">Days to target</div>
+          <div class="planner-chip-value">${daysToTarget}</div>
+          <div class="planner-chip-sub">from ${estLW} kg (+${lwGap} kg)</div>
+        </div>
+        <div class="planner-result-chip">
+          <div class="planner-chip-label">Projected kill date</div>
+          <div class="planner-chip-value" style="font-size:1.1rem">${killDateStr}</div>
+          <div class="planner-chip-sub">today + ${daysToTarget} d</div>
+        </div>
+        <div class="planner-result-chip">
+          <div class="planner-chip-label">Projected CW</div>
+          <div class="planner-chip-value">${projCW} kg</div>
+          <div class="planner-chip-sub">${targetLW} × 53%</div>
+        </div>
+      </div>
+      <div class="planner-result-total">
+        <div class="planner-result-money">$${Math.round(mobValue).toLocaleString()}</div>
+        <div class="planner-result-break">$${Math.round(perHead).toLocaleString()} per head × ${head} head @ $${price.toFixed(2)}/kg CW</div>
+      </div>
+    </div>`;
+
+  $('plannerFooter').textContent = `Est. weight ${estLW} kg (weighed ${avgW} kg, ${daysSince}d ago) · $${price.toFixed(2)}/kg CW · 53% dressing`;
 }
 
 function farmTypeLabel(type) {
@@ -1138,6 +1520,15 @@ async function handleUpload(file) {
 // ---- Sign out ----
 $('btnSignOut').addEventListener('click', async () => {
   await supabase.auth.signOut();
+});
+
+// ---- Planner input handlers ----
+$('btnPlannerBack').addEventListener('click', () => {
+  plannerMob = null;
+  showSection('sectionDashboard');
+});
+['plannerAdg', 'plannerTargetLW', 'plannerPrice'].forEach(id => {
+  $(id).addEventListener('input', recalcPlanner);
 });
 
 // ---- Start ----

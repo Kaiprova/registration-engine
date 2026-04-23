@@ -20,8 +20,13 @@ create table if not exists mobs (
   drop_type   text,
   head_count  integer,
   avg_weight  numeric,
-  created_at  timestamptz not null default now()
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz
 );
+
+-- Migration: add updated_at if the table already exists in production
+-- Run this once in the Supabase SQL editor:
+--   ALTER TABLE public.mobs ADD COLUMN IF NOT EXISTS updated_at timestamptz;
 
 create table if not exists animals (
   id          uuid primary key default gen_random_uuid(),
