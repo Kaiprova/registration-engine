@@ -920,6 +920,183 @@
       .sb-footer { display: none; }
     }
 
+    /* ============================================================
+       Phase 2b - Mob Detail view
+    ============================================================ */
+    .md-back {
+      background: transparent;
+      border: none;
+      padding: 0;
+      margin-bottom: 0.6rem;
+      font-family: var(--kp-sans);
+      font-size: 12px;
+      color: var(--kp-pasture-mid);
+      cursor: pointer;
+    }
+    .md-back:hover { color: var(--kp-pasture-deep); }
+
+    .md-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .md-hdr-text h1 {
+      font-family: var(--kp-serif);
+      font-weight: 500;
+      font-size: 1.9rem;
+      color: var(--kp-pasture-deep);
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+    .md-hdr-meta {
+      font-size: 12px;
+      color: var(--kp-ink-muted);
+    }
+    .md-hdr-cta {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .md-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-family: var(--kp-sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+    .md-btn-primary {
+      background: var(--kp-pasture-mid);
+      color: #fff;
+    }
+    .md-btn-primary:hover { background: var(--kp-pasture-deep); }
+
+    .md-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.6rem;
+      margin-bottom: 1.25rem;
+    }
+    @media (max-width: 640px) { .md-grid { grid-template-columns: repeat(2, 1fr); } }
+    .md-chip {
+      background: var(--kp-paper-surface);
+      border: 1px solid var(--kp-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .md-chip-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--kp-ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .md-chip-value {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--kp-ink);
+      line-height: 1.15;
+    }
+    .md-chip-value-sm {
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+    .md-chip-sub {
+      font-size: 11px;
+      color: var(--kp-ink-muted);
+      margin-top: 2px;
+    }
+
+    .md-section {
+      background: var(--kp-paper-surface);
+      border: 1px solid var(--kp-border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .md-section h2 {
+      font-family: var(--kp-serif);
+      font-weight: 500;
+      font-size: 1.05rem;
+      color: var(--kp-pasture-deep);
+      margin-bottom: 0.75rem;
+    }
+
+    .md-chart-wrap {
+      position: relative;
+      height: 260px;
+      background: #fff;
+      border: 1px solid var(--kp-border);
+      border-radius: 8px;
+      padding: 14px 10px 10px;
+    }
+    .md-chart-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--kp-ink-muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .md-carbon-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.6rem;
+    }
+    @media (max-width: 640px) { .md-carbon-grid { grid-template-columns: 1fr; } }
+    .md-carbon-chip {
+      background: rgba(26, 107, 66, 0.06);
+      border: 1px solid rgba(26, 107, 66, 0.35);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .md-carbon-chip .md-chip-label { color: var(--kp-pasture-mid); }
+    .md-carbon-chip .md-chip-value { color: var(--kp-pasture-deep); }
+    .md-carbon-note {
+      margin-top: 0.6rem;
+      font-size: 11px;
+      color: var(--kp-ink-muted);
+    }
+
+    .md-attrition-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .md-attrition-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--kp-border);
+      font-size: 12px;
+    }
+    .md-attrition-item:last-child { border-bottom: none; }
+    .md-attrition-date {
+      color: var(--kp-ink-muted);
+      min-width: 95px;
+    }
+    .md-attrition-reason { flex: 1; color: var(--kp-ink); }
+    .md-attrition-count {
+      font-weight: 600;
+      color: var(--kp-gold-kraft);
+    }
+    .md-empty {
+      font-size: 12px;
+      color: var(--kp-ink-muted);
+      padding: 10px 0;
+    }
+
     .planner-extrap {
       font-size: 11px;
       color: var(--kp-gold-kraft);
@@ -965,6 +1142,9 @@
       line-height: 1.55;
     }
   </style>
+  <!-- Chart.js for weigh-history chart on mob detail -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 </head>
 <body>
 
@@ -1304,6 +1484,60 @@
 
         </div><!-- /sectionPlanner -->
 
+        <div class="app-view" id="sectionMobDetail">
+          <button class="md-back" id="btnMobDetailBack">&larr; Back to My Mobs</button>
+
+          <div class="md-hdr">
+            <div class="md-hdr-text">
+              <h1 id="mdMobName">&mdash;</h1>
+              <div class="md-hdr-meta" id="mdMobMeta"></div>
+            </div>
+            <div class="md-hdr-cta">
+              <button class="md-btn md-btn-primary" id="btnMobDetailPlan">&#128200; Plan supply</button>
+            </div>
+          </div>
+
+          <div class="md-grid">
+            <div class="md-chip">
+              <div class="md-chip-label">Head</div>
+              <div class="md-chip-value" id="mdHead">&mdash;</div>
+            </div>
+            <div class="md-chip">
+              <div class="md-chip-label">Avg weight</div>
+              <div class="md-chip-value" id="mdAvgW">&mdash;</div>
+              <div class="md-chip-sub" id="mdEstLW"></div>
+            </div>
+            <div class="md-chip">
+              <div class="md-chip-label">Last weighed</div>
+              <div class="md-chip-value md-chip-value-sm" id="mdWeighDate">&mdash;</div>
+              <div class="md-chip-sub" id="mdWeighSub"></div>
+            </div>
+            <div class="md-chip">
+              <div class="md-chip-label">Farm</div>
+              <div class="md-chip-value md-chip-value-sm" id="mdFarmName">&mdash;</div>
+              <div class="md-chip-sub" id="mdFarmRegion"></div>
+            </div>
+          </div>
+
+          <div class="md-section">
+            <h2>Weigh history</h2>
+            <div class="md-chart-wrap" id="mdChartWrap">
+              <canvas id="mdChart"></canvas>
+            </div>
+          </div>
+
+          <div class="md-section">
+            <h2>Carbon footprint</h2>
+            <div class="md-carbon-grid" id="mdCarbon"></div>
+            <div class="md-carbon-note" id="mdCarbonNote"></div>
+          </div>
+
+          <div class="md-section">
+            <h2>Attrition</h2>
+            <div id="mdAttrition"></div>
+          </div>
+        </div>
+
         <div class="app-view" id="sectionOffers">
           <div class="av-hdr">
             <div>
@@ -1346,7 +1580,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const $ = id => document.getElementById(id);
 const TOP_SECTIONS = ['sectionLogin', 'sectionMagicSent', 'sectionRegister', 'sectionApp'];
-const APP_VIEWS = ['sectionOverview', 'sectionDashboard', 'sectionPlanner', 'sectionOffers', 'sectionTrace'];
+const APP_VIEWS = ['sectionOverview', 'sectionDashboard', 'sectionMobDetail', 'sectionPlanner', 'sectionOffers', 'sectionTrace'];
 
 function showSection(id) {
   const hdr = $('siteHeader');
@@ -1558,8 +1792,213 @@ function renderMobTable(mobs) {
   container.querySelectorAll('tr[data-mob-id]').forEach(tr => {
     tr.addEventListener('click', () => {
       const mob = currentMobs.find(m => m.id === tr.dataset.mobId);
-      if (mob) openPlanner(mob);
+      if (mob) openMobDetail(mob);
     });
+  });
+}
+
+// ---- Mob Detail (Phase 2b) ----
+let mdMob = null;
+let mdChartInstance = null;
+
+async function openMobDetail(mob) {
+  mdMob = mob;
+
+  // Static fields from the mob row we clicked (fast render)
+  const breed = mob.breed || '';
+  const sex = mob.sex || '';
+  const drop = mob.drop_type || '';
+  const metaParts = [breed, sex, drop].filter(Boolean).join(' · ') || 'Mob';
+  $('mdMobName').textContent = mob.mob_name || 'Mob';
+  $('mdMobMeta').textContent = metaParts;
+  $('mdHead').textContent = (mob.head_count || 0).toLocaleString();
+  $('mdAvgW').textContent = mob.avg_weight ? `${mob.avg_weight} kg` : '—';
+
+  const weighRaw = mob.updated_at || mob.created_at;
+  const weighDate = weighRaw ? new Date(weighRaw) : null;
+  const daysSince = weighDate ? Math.max(0, Math.floor((Date.now() - weighDate) / 86400000)) : 0;
+  $('mdWeighDate').textContent = weighDate
+    ? weighDate.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })
+    : '—';
+  $('mdWeighSub').textContent = weighDate ? `${daysSince}d ago` : '';
+
+  // Estimate current LW with default ADG so the farmer sees growth-to-today
+  const estLW = (mob.avg_weight && daysSince > 0)
+    ? Math.round(mob.avg_weight + daysSince * 0.8)
+    : 0;
+  $('mdEstLW').textContent = estLW > mob.avg_weight ? `est. ${estLW} kg today @ 800 g/d` : '';
+
+  // Farm name/region — we only have farm_id; fetch farm from currentFarm if it matches
+  if (currentFarm && currentFarm.id === mob.farm_id) {
+    $('mdFarmName').textContent = currentFarm.farm_name || '—';
+    $('mdFarmRegion').textContent = currentFarm.region || '';
+  } else {
+    $('mdFarmName').textContent = '—';
+    $('mdFarmRegion').textContent = '';
+  }
+
+  // Render carbon panel synchronously with sensible defaults
+  renderMobDetailCarbon(mob, estLW || mob.avg_weight || 0);
+
+  // Show the section BEFORE async fetches so the user sees something immediately
+  showSection('sectionMobDetail');
+  window.scrollTo({ top: 0, behavior: 'instant' });
+
+  // Fetch weigh history + attrition in parallel
+  const [history, attrition] = await Promise.all([
+    fetchJson(`/api/mobs/${mob.id}/weigh-history`),
+    fetchJson(`/api/mobs/${mob.id}/attrition`)
+  ]);
+
+  renderWeighChart(history || []);
+  renderAttritionList(attrition || []);
+}
+
+async function fetchJson(path) {
+  try {
+    const res = await fetch(path, {
+      headers: { Authorization: `Bearer ${currentSession.access_token}` }
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+function renderWeighChart(history) {
+  const wrap = $('mdChartWrap');
+  if (mdChartInstance) { mdChartInstance.destroy(); mdChartInstance = null; }
+
+  if (!history || history.length === 0) {
+    wrap.innerHTML = `<div class="md-chart-empty">No weigh data yet. Upload a livestock weighing CSV on <strong>My Mobs</strong> to build the curve.</div>`;
+    return;
+  }
+
+  // Re-create canvas (innerHTML wipe removes the previous one)
+  wrap.innerHTML = '<canvas id="mdChart"></canvas>';
+  const ctx = $('mdChart').getContext('2d');
+
+  const points = history.map(h => ({ x: h.weigh_date, y: Number(h.avg_lw) || 0 }));
+
+  mdChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: [{
+        label: 'Avg LW (kg)',
+        data: points,
+        borderColor: '#1A6B42',
+        backgroundColor: 'rgba(26, 107, 66, 0.08)',
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: '#1A6B42',
+        tension: 0.25,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${ctx.parsed.y} kg LW`
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'time',
+          time: { unit: 'month', tooltipFormat: 'dd MMM yyyy', displayFormats: { month: 'MMM yy' } },
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: { font: { size: 10 } }
+        },
+        y: {
+          title: { display: true, text: 'kg LW', font: { size: 10 } },
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: { font: { size: 10 } }
+        }
+      }
+    }
+  });
+}
+
+function renderAttritionList(events) {
+  const root = $('mdAttrition');
+  if (!events || events.length === 0) {
+    root.innerHTML = `<div class="md-empty">No attrition events recorded for this mob.</div>`;
+    return;
+  }
+  const rows = events.map(e => {
+    const d = new Date(e.event_date);
+    const dStr = d.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' });
+    const reason = e.reason || 'Loss event';
+    const count = e.head_count || 1;
+    return `<li class="md-attrition-item">
+      <span class="md-attrition-date">${dStr}</span>
+      <span class="md-attrition-reason">${reason}</span>
+      <span class="md-attrition-count">&minus;${count}</span>
+    </li>`;
+  }).join('');
+  root.innerHTML = `<ul class="md-attrition-list">${rows}</ul>`;
+}
+
+function renderMobDetailCarbon(mob, estLW) {
+  const root = $('mdCarbon');
+  const note = $('mdCarbonNote');
+  const avgW = Number(mob.avg_weight) || 0;
+  if (!avgW) {
+    root.innerHTML = `<div class="md-empty" style="grid-column:1/-1">Upload a weigh sheet to see this mob's carbon footprint.</div>`;
+    note.textContent = '';
+    return;
+  }
+
+  // Defaults match the planner's initial state
+  const defaultAdg = 800;
+  const defaultTargetLW = 600;
+  const season = mobSeason(mob);
+  const cls = mobClass(mob);
+  const origin = mobOrigin(mob);
+  const months = mobFinishingMonths(defaultTargetLW, defaultAdg / 1000);
+  const lca = lcaCalcExtended(season, cls, 40.0, months, defaultAdg, origin);
+  const vsBNLZ = +(((BNLZ_LW - lca.fpLW) / BNLZ_LW) * 100).toFixed(1);
+  const vsSign = vsBNLZ >= 0 ? '−' : '+';
+  const vsAbs = Math.abs(vsBNLZ).toFixed(1);
+
+  root.innerHTML = `
+    <div class="md-carbon-chip">
+      <div class="md-chip-label">Footprint (LW)</div>
+      <div class="md-chip-value">${lca.fpLW.toFixed(2)}</div>
+      <div class="md-chip-sub">kg CO₂e/kg LW</div>
+    </div>
+    <div class="md-carbon-chip">
+      <div class="md-chip-label">Footprint (CW)</div>
+      <div class="md-chip-value">${lca.fpCW.toFixed(2)}</div>
+      <div class="md-chip-sub">kg CO₂e/kg CW</div>
+    </div>
+    <div class="md-carbon-chip">
+      <div class="md-chip-label">vs B+LNZ ${BNLZ_LW}</div>
+      <div class="md-chip-value">${vsSign}${vsAbs}%</div>
+      <div class="md-chip-sub">${vsBNLZ >= 0 ? 'below' : 'above'} benchmark</div>
+    </div>`;
+
+  const parts = [`${origin}-origin ${cls}`, `${season} drop`, `${defaultTargetLW} kg LW target @ ${defaultAdg} g/d`];
+  note.textContent = `Default scenario: ${parts.join(' · ')}. Open the planner to change targets.`;
+}
+
+// ---- Mob Detail button wiring (runs once at script load) ----
+const _btnMdBack = document.getElementById('btnMobDetailBack');
+if (_btnMdBack) {
+  _btnMdBack.addEventListener('click', () => {
+    showSection('sectionDashboard');
+  });
+}
+const _btnMdPlan = document.getElementById('btnMobDetailPlan');
+if (_btnMdPlan) {
+  _btnMdPlan.addEventListener('click', () => {
+    if (mdMob) openPlanner(mdMob);
   });
 }
 

@@ -161,6 +161,23 @@ Click a mob row → full detail view with Chart.js weigh-history curve, attritio
 - All three use `loadOwnedMob()` which joins `farms!inner(owner_id)` to scope to the authenticated farmer.
 - Removed the broken `weigh_events(*)` join from `GET /api/farms/:id/animals` (that table never existed).
 
-## Next: Phase 2b — Mob Detail frontend
+## Phase 2b — Mob Detail view (23 Apr 2026)
 
-Add Chart.js 4.4 CDN. New `sectionMobDetail` app-view: summary card (breed/sex/drop/head/avg/last upload/farm/region), weigh history line chart, carbon panel (uses existing LCA engine), attrition log, and a "Plan supply" button that opens the existing planner pre-loaded with the mob. Update mob row click in My Mobs to open the detail view (not the planner directly).
+New `sectionMobDetail` app-view. Click any mob row on **My Mobs** to open it (replaces the previous "row → planner directly" behaviour).
+
+**Layout (top to bottom):**
+1. **Back** to My Mobs + **Plan supply** CTA (opens the existing planner pre-loaded with this mob)
+2. **4-chip summary grid** — Head · Avg weight (+ today's estimated LW at 800 g/d) · Last weighed (+ days ago) · Farm + region
+3. **Weigh history chart** — Chart.js line chart fetched from `GET /api/mobs/:id/weigh-history`. Time axis via `chartjs-adapter-date-fns`. Empty state prompts farmer to upload a weigh sheet.
+4. **Carbon footprint panel** — 3 green chips (fpLW, fpCW, vs B+LNZ) computed via the existing LCA engine with sensible defaults (autumn/spring from drop_type, class from sex, 40kg BW, 600kg target LW, 800g/d ADG). Note tells farmer "open the planner to change targets".
+5. **Attrition log** — fetched from `GET /api/mobs/:id/attrition`. Empty until a write-path UI is built.
+
+**CDN additions in `<head>`:** `chart.js@4.4.0` + `chartjs-adapter-date-fns@3.0.0` (required for time-axis charts).
+
+**New JS helpers:** `openMobDetail(mob)`, `fetchJson(path)`, `renderWeighChart(history)`, `renderAttritionList(events)`, `renderMobDetailCarbon(mob, estLW)`. `mdChartInstance` is singleton — destroyed and recreated on every re-open to avoid Chart.js memory leaks.
+
+**APP_VIEWS** updated to include `sectionMobDetail`. Sidebar has no entry for it — reached only via mob row click.
+
+## Next: Phase 3 — data adapter + demo contracts/offers
+
+Inline the main platform's `FARMS`, `CONTRACTS`, `NOTIFS` arrays. Write an adapter that maps real Supabase mobs into the `{cls, season, bw, lwg, ageMonths, weighHistory}` shape the main platform's view functions expect. Bridge is what unlocks the Offers + Trace views built against demo data while keeping mob/farm data real.
