@@ -701,6 +701,37 @@
       padding: 10px 12px;
     }
     .planner-result-chip .planner-chip-value { font-size: 1.35rem; }
+
+    .planner-result-chip--carbon {
+      background: rgba(26, 107, 66, 0.06);
+      border-color: rgba(26, 107, 66, 0.35);
+    }
+    .planner-result-chip--carbon .planner-chip-label { color: var(--kp-pasture-mid); }
+    .planner-result-chip--carbon .planner-chip-value { color: var(--kp-pasture-deep); }
+
+    .planner-result-chip--better {
+      background: rgba(26, 107, 66, 0.10);
+      border-color: var(--kp-pasture-mid);
+    }
+    .planner-result-chip--better .planner-chip-label { color: var(--kp-pasture-mid); }
+    .planner-result-chip--better .planner-chip-value { color: var(--kp-pasture-deep); }
+
+    .planner-result-chip--worse {
+      background: rgba(176, 146, 79, 0.10);
+      border-color: var(--kp-gold-kraft);
+    }
+    .planner-result-chip--worse .planner-chip-label { color: var(--kp-gold-kraft); }
+    .planner-result-chip--worse .planner-chip-value { color: var(--kp-gold-kraft); }
+
+    .planner-extrap {
+      font-size: 11px;
+      color: var(--kp-gold-kraft);
+      text-align: center;
+      margin: -0.5rem 0 0.75rem;
+      padding: 0 4px;
+      line-height: 1.4;
+    }
+
     .planner-result-total {
       text-align: center;
       padding-top: 0.75rem;
@@ -1211,6 +1242,102 @@ function renderMobTable(mobs) {
 // ---- Supply Planner ----
 const DRESS = 0.53;
 
+// ============================================================
+// LCA engine — ported from main Kaiprova platform (src/engine/)
+// Source: AgResearch RE450/2024/054 — 54 validated scenarios
+// ============================================================
+const BNLZ_LW = 11.50;
+const BNLZ_CW = +(BNLZ_LW / DRESS).toFixed(2);
+const BEEF_UPLIFT = 1.30;
+const EXTRAP_EXP = 0.2281;
+const WEANING_AGE_MONTHS = 3.3;
+const WEANING_LW_KG = 100;
+
+const A4={steer:{37.5:{spring:{10:[7.24,6.99,6.83],11:[7.22,6.99,6.85],12:[7.22,6.92,6.82],13:[7.15,6.95,6.83],14:[7.07,6.88,6.78],15:[6.97,6.80,6.71],16:[7.04,6.89,6.81],17:[7.17,7.04,6.98],18:[7.38,7.27,7.22]},autumn:{10:[6.52,6.23,6.03],11:[6.60,6.34,6.16],12:[6.76,6.52,6.38],13:[6.96,6.75,6.63],14:[7.23,7.05,6.96],15:[7.41,7.26,7.18],16:[7.59,7.45,7.39],17:[7.76,7.62,7.56],18:[7.91,7.77,7.70]}},40.0:{spring:{10:[7.15,6.92,6.77],11:[7.15,6.92,6.78],12:[7.14,6.86,6.77],13:[7.08,6.89,6.78],14:[7.01,6.83,6.73],15:[6.91,6.75,6.67],16:[6.98,6.84,6.77],17:[7.12,7.00,6.94],18:[7.33,7.23,7.18]},autumn:{10:[6.44,6.16,5.96],11:[6.52,6.27,6.10],12:[6.69,6.46,6.32],13:[6.89,6.70,6.58],14:[7.16,7.00,6.91],15:[7.35,7.20,7.13],16:[7.54,7.41,7.35],17:[7.71,7.58,7.52],18:[7.86,7.73,7.66]}}},heifer:{37.5:{spring:{10:[7.41,7.20,7.07],11:[7.42,7.21,7.10],12:[7.42,7.16,7.07],13:[7.36,7.18,7.08],14:[7.28,7.12,7.02],15:[7.18,7.03,6.95],16:[7.25,7.12,7.05],17:[7.39,7.27,7.21],18:[7.61,7.50,7.44]},autumn:{10:[6.66,6.39,6.21],11:[6.76,6.52,6.36],12:[6.94,6.73,6.59],13:[7.15,6.97,6.86],14:[7.44,7.28,7.20],15:[7.64,7.50,7.42],16:[7.83,7.70,7.63],17:[8.00,7.86,7.79],18:[8.15,8.01,7.92]}},40.0:{spring:{10:[7.33,7.13,7.00],11:[7.34,7.14,7.03],12:[7.35,7.11,7.02],13:[7.30,7.13,7.03],14:[7.22,7.06,6.97],15:[7.12,6.98,6.90],16:[7.20,7.07,7.00],17:[7.34,7.22,7.17],18:[7.56,7.46,7.40]},autumn:{10:[6.57,6.32,6.14],11:[6.68,6.45,6.30],12:[6.87,6.66,6.54],13:[7.09,6.91,6.81],14:[7.38,7.23,7.15],15:[7.58,7.44,7.37],16:[7.77,7.65,7.58],17:[7.95,7.82,7.75],18:[8.10,7.97,7.89]}}},bull:{37.5:{spring:{10:[7.09,6.81,6.62],11:[7.06,6.79,6.62],12:[7.04,6.70,6.57],13:[6.97,6.73,6.59],14:[6.88,6.66,6.54],15:[6.78,6.58,6.48],16:[6.84,6.67,6.58],17:[6.96,6.81,6.74],18:[7.15,7.03,6.98]},autumn:{10:[6.41,6.09,5.87],11:[6.47,6.18,5.98],12:[6.61,6.34,6.17],13:[6.79,6.55,6.41],14:[7.03,6.83,6.72],15:[7.20,7.02,6.93],16:[7.37,7.21,7.13],17:[7.52,7.37,7.30],18:[7.67,7.52,7.45]}},40.0:{spring:{10:[7.01,6.74,6.56],11:[6.99,6.73,6.56],12:[6.97,6.65,6.52],13:[6.90,6.67,6.54],14:[6.82,6.61,6.49],15:[6.72,6.53,6.43],16:[6.78,6.62,6.54],17:[6.90,6.77,6.70],18:[7.10,6.99,6.94]},autumn:{10:[6.32,6.02,5.80],11:[6.39,6.11,5.92],12:[6.53,6.28,6.12],13:[6.72,6.49,6.36],14:[6.97,6.77,6.67],15:[7.14,6.97,6.88],16:[7.31,7.16,7.09],17:[7.47,7.32,7.26],18:[7.62,7.47,7.41]}}}};
+
+const A1lw={spring:{10:[248.40,280.20,312.00],11:[269.40,305.70,342.00],12:[291.10,365.97,411.57],13:[312.80,358.40,404.00],14:[333.80,383.90,434.00],15:[355.50,410.25,465.00],16:[376.50,435.75,495.00],17:[398.20,462.10,526.00],18:[419.90,488.45,557.00]},autumn:{10:[249.77,281.87,313.97],11:[271.40,308.15,344.90],12:[293.17,334.57,375.97],13:[313.60,359.20,404.80],14:[334.98,385.23,435.48],15:[356.10,410.85,465.60],16:[377.70,437.10,496.50],17:[399.10,463.00,526.90],18:[420.80,489.35,557.90]}};
+
+function byLWG(row, lwg) {
+  if (lwg <= 700) return row[0];
+  if (lwg <= 850) return row[0] + (row[1] - row[0]) * ((lwg - 700) / 150);
+  if (lwg <= 1000) return row[1] + (row[2] - row[1]) * ((lwg - 850) / 150);
+  return row[2] + ((row[2] - row[1]) / 150) * (lwg - 1000);
+}
+function byBW(cls, season, months, lwg, bw) {
+  const m = Math.round(Math.min(18, Math.max(10, months)));
+  const v375 = byLWG(A4[cls][37.5][season][m], lwg);
+  const v400 = byLWG(A4[cls][40.0][season][m], lwg);
+  return v375 + ((v400 - v375) / 2.5) * (bw - 37.5);
+}
+function calcLW(season, months, lwg, bw) {
+  if (months <= 18) {
+    return byLWG(A1lw[season][Math.round(Math.min(18, Math.max(10, months)))], lwg) + (bw - 40) * 2.5;
+  }
+  const lw18 = byLWG(A1lw[season][18], lwg) + (bw - 40) * 2.5;
+  const extraDays = (months - 18) * 30.44;
+  return lw18 + (lwg / 1000) * extraDays;
+}
+function extrapolateFP(baseFP18, lw18, lwTarget, lwg) {
+  const maintRatio = Math.pow(lwTarget, 0.75) / Math.pow(lw18, 0.75);
+  const timeFromWeaning18 = 18 - WEANING_AGE_MONTHS;
+  const timeFromWeaning = (lwTarget - 100) / (lwg / 1000) / 30.44;
+  const timeRatio = Math.max(1, timeFromWeaning / timeFromWeaning18);
+  return baseFP18 * Math.pow(maintRatio * timeRatio, EXTRAP_EXP);
+}
+function lcaCalcExtended(season, cls, bw, months, lwg, origin) {
+  let fpLW, xAge = false, xLWG = false, xBW = false;
+  const lw = +calcLW(season, months, lwg, bw).toFixed(1);
+  if (months <= 18 && lwg >= 700) {
+    fpLW = +byBW(cls, season, months, lwg, bw).toFixed(2);
+    xLWG = lwg > 1000;
+    xBW = bw < 37.5 || bw > 40.0;
+  } else if (months <= 18 && lwg < 700) {
+    const fp700 = +byBW(cls, season, months, 700, bw).toFixed(4);
+    fpLW = +(fp700 * Math.pow(700 / lwg, 0.3)).toFixed(2);
+    xLWG = true;
+    xBW = bw < 37.5 || bw > 40.0;
+  } else {
+    xAge = true;
+    xLWG = lwg > 1000 || lwg < 700;
+    xBW = bw < 37.5 || bw > 40.0;
+    const clampedLWG = Math.max(700, Math.min(1000, lwg));
+    const baseFP18 = byBW(cls, season, 18, clampedLWG, bw);
+    const lw18 = calcLW(season, 18, clampedLWG, bw);
+    fpLW = extrapolateFP(baseFP18, lw18, lw, lwg);
+    if (lwg < 700) fpLW *= Math.pow(700 / lwg, 0.3);
+    else if (lwg > 1000) fpLW *= Math.pow(1000 / lwg, 0.15);
+    fpLW = +fpLW.toFixed(2);
+  }
+  const fpLW_dairy = fpLW;
+  if (origin === 'beef') fpLW = +(fpLW * BEEF_UPLIFT).toFixed(2);
+  const fpCW = +(fpLW / DRESS).toFixed(2);
+  const cw = +(lw * DRESS).toFixed(1);
+  return { fpLW, fpCW, lw, cw, fpLW_dairy: origin === 'beef' ? fpLW_dairy : null, xAge, xLWG, xBW, origin: origin || 'dairy' };
+}
+
+function mobSeason(mob) {
+  const d = (mob.drop_type || '').toLowerCase();
+  if (d.includes('spring')) return 'spring';
+  return 'autumn';
+}
+function mobClass(mob) {
+  const s = (mob.sex || '').toLowerCase();
+  if (s.includes('bull')) return 'bull';
+  if (s.includes('heifer') || s.includes('cow')) return 'heifer';
+  return 'steer';
+}
+function mobOrigin(mob) {
+  const b = (mob.breed || '').toLowerCase();
+  const beef = ['angus','hereford','murray','simmental','charolais','wagyu','limousin','beef'];
+  if (beef.some(k => b.includes(k))) return 'beef';
+  return 'dairy';
+}
+function mobFinishingMonths(targetLW, adgKg) {
+  if (adgKg <= 0) return 18;
+  const daysFromWeaning = Math.max(0, targetLW - WEANING_LW_KG) / adgKg;
+  return +(WEANING_AGE_MONTHS + daysFromWeaning / 30.44).toFixed(1);
+}
+
 function defaultTargetLW(mob) {
   const sex = (mob.sex || '').toLowerCase();
   const drop = (mob.drop_type || '').toLowerCase();
@@ -1294,6 +1421,25 @@ function recalcPlanner() {
   const perHead = projCW * price;
   const mobValue = perHead * head;
 
+  // Carbon calc — feed planner inputs into LCA engine
+  const season = mobSeason(mob);
+  const cls = mobClass(mob);
+  const origin = mobOrigin(mob);
+  const finishingMonths = mobFinishingMonths(targetLW, adgKg);
+  const lca = lcaCalcExtended(season, cls, 40.0, finishingMonths, adg, origin);
+  const vsBNLZ = +(((BNLZ_LW - lca.fpLW) / BNLZ_LW) * 100).toFixed(1);
+  const mobTotalCO2e = +(lca.fpCW * projCW * head).toFixed(0);
+  const vsClass = vsBNLZ >= 0 ? 'planner-result-chip--better' : 'planner-result-chip--worse';
+  const vsSign = vsBNLZ >= 0 ? '−' : '+';
+  const vsAbs = Math.abs(vsBNLZ).toFixed(1);
+  const extrapNotes = [];
+  if (lca.xAge) extrapNotes.push('age >18mo extrapolated');
+  if (lca.xLWG) extrapNotes.push('ADG outside 700–1000 g/d validated range');
+  if (origin === 'beef') extrapNotes.push('beef-bred uplift (+30%)');
+  const extrapHtml = extrapNotes.length
+    ? `<div class="planner-extrap">⚠ Indicative — ${extrapNotes.join(' · ')}</div>`
+    : '';
+
   out.innerHTML = `
     <div class="planner-result">
       <div class="planner-result-label">Projection at ${adg} g/day → ${targetLW} kg LW</div>
@@ -1313,14 +1459,31 @@ function recalcPlanner() {
           <div class="planner-chip-value">${projCW} kg</div>
           <div class="planner-chip-sub">${targetLW} × 53%</div>
         </div>
+        <div class="planner-result-chip planner-result-chip--carbon">
+          <div class="planner-chip-label">Footprint (LW)</div>
+          <div class="planner-chip-value">${lca.fpLW.toFixed(2)}</div>
+          <div class="planner-chip-sub">kg CO₂e/kg LW</div>
+        </div>
+        <div class="planner-result-chip planner-result-chip--carbon">
+          <div class="planner-chip-label">Footprint (CW)</div>
+          <div class="planner-chip-value">${lca.fpCW.toFixed(2)}</div>
+          <div class="planner-chip-sub">kg CO₂e/kg CW</div>
+        </div>
+        <div class="planner-result-chip ${vsClass}">
+          <div class="planner-chip-label">vs B+LNZ ${BNLZ_LW}</div>
+          <div class="planner-chip-value">${vsSign}${vsAbs}%</div>
+          <div class="planner-chip-sub">${vsBNLZ >= 0 ? 'below' : 'above'} benchmark</div>
+        </div>
       </div>
+      ${extrapHtml}
       <div class="planner-result-total">
         <div class="planner-result-money">$${Math.round(mobValue).toLocaleString()}</div>
         <div class="planner-result-break">$${Math.round(perHead).toLocaleString()} per head × ${head} head @ $${price.toFixed(2)}/kg CW</div>
+        <div class="planner-result-break">Mob footprint · ${(mobTotalCO2e / 1000).toFixed(1)} t CO₂e total · ${origin}-origin ${cls}, ${season} drop, ~${finishingMonths} mo finishing</div>
       </div>
     </div>`;
 
-  $('plannerFooter').textContent = `Est. weight ${estLW} kg (weighed ${avgW} kg, ${daysSince}d ago) · $${price.toFixed(2)}/kg CW · 53% dressing`;
+  $('plannerFooter').textContent = `Est. weight ${estLW} kg (weighed ${avgW} kg, ${daysSince}d ago) · $${price.toFixed(2)}/kg CW · 53% dressing · LCA: AgResearch RE450/2024/054`;
 }
 
 function farmTypeLabel(type) {
