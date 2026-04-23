@@ -127,21 +127,21 @@ The farmer dashboard opens a **Supply Planner** when a mob row is clicked. It au
 - Total mob value ($) + per-head × head @ price breakdown
 - Mob footprint total (t CO₂e) + scenario line (origin · class · drop · finishing months)
 
-**LCA engine** is ported inline in `public/index.html` from the main Kaiprova platform (`src/engine/lca-calc.js` + `lca-tables.js`). Functions: `lcaCalcExtended`, `calcLW`, `byBW`, `byLWG`, `extrapolateFP`. Tables: `A4` (footprint by class/bw/season/month/lwg) and `A1lw` (LW by season/month/lwg). AgResearch RE450/2024/054 — 54 validated scenarios.
+**LCA engine** is ported inline in `public/index.html` from the main Kaiprova platform (`src/engine/lca-calc.js` + `lca-tables.js`). Functions: `lcaCalcExtended`, `calcLW`, `byBW`, `byLWG`, `extrapolateFP`. Tables: `A4` (footprint by class/bw/season/month/lwg) and `A1lw` (LW by season/month/lwg). AgResearch RE450/2024/054 — 54 vali
 
-**Mob → LCA input mapping:**
-- `season` from `mob.drop_type` (spring/autumn; default autumn)
-- `cls` from `mob.sex` (bull/heifer/steer)
-- `origin` from `mob.breed` (angus/hereford/murray/simmental/charolais/wagyu/limousin/beef → beef; else dairy)
-- `bw` default 40.0 kg (AgResearch anchor)
-- `months` computed from target LW, ADG, and `WEANING_LW_KG = 100` / `WEANING_AGE_MONTHS = 3.3`
+## Phase 1 — Dashboard look + sidebar nav (23 Apr 2026)
 
-Beef-bred mobs get a +30% uplift (IDF 2022 allocation). Ages >18mo use extrapolation engine (`EXTRAP_EXP = 0.2281`, calibrated to 28-month anchor). Indicative warning shown when any input falls outside validated range.
+Migrated from the main Kaiprova platform's visual language. Structure now:
 
-## Supabase SQL Editor URL
+- **Top-level sections** (flat, no shell): `sectionLogin`, `sectionMagicSent`, `sectionRegister` — front door kept simple so farmers aren't dropped into a dashboard before registering.
+- **App shell** (`sectionApp`): 220px dark-green sidebar + white main area. Contains 5 sub-views: `sectionOverview`, `sectionDashboard` (My Mobs — the existing mob list + CSV upload), `sectionPlanner` (Supply Planner + carbon chips — existing), `sectionOffers` (placeholder), `sectionTrace` (placeholder).
 
-`https://supabase.com/dashboard/project/tafwprmxhwuhxckjdwdj/sql/new`
+Navigation: sidebar buttons carry `data-view="sectionX"`. `showSection(id)` detects app-view IDs and routes via `sectionApp`, toggling `.active` on the sidebar button. Legacy `showSection('sectionDashboard')` calls still work unchanged.
 
-## Railway Deploy URL
+Sidebar exposes Signout (mirrors the top bar). Top bar `siteHeader` is hidden inside the app shell — shown only during auth/register flow.
 
-`https://railway.com/project/4706c603-1a3f-42bf-89b2-7bd61acdb638/service/8657413e-a6ca-4dd6-8776-526511c4d482`
+Style tokens reused from main platform: `--kp-pasture-mid` for sidebar bg, Inter Tight 12–13px body, Fraunces 1.7rem for view titles. CSS is additive — the original cream/Fraunces palette for login/register is untouched.
+
+## Next: Phase 2 — Mob Detail
+
+Click a mob row → full detail view with Chart.js weigh-history curve, attrition log, carbon panel, and a "Plan supply" button that opens the existing planner pre-loaded with that mob. Real Supabase weigh data only (no demo).

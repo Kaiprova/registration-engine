@@ -723,6 +723,203 @@
     .planner-result-chip--worse .planner-chip-label { color: var(--kp-gold-kraft); }
     .planner-result-chip--worse .planner-chip-value { color: var(--kp-gold-kraft); }
 
+    /* ============================================================
+       Phase 1 — Main-platform dashboard look (shell + sidebar)
+    ============================================================ */
+    .app-shell {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: calc(100vh - 40px);
+      background: #FFFFFF;
+      border: 1px solid rgba(0, 0, 0, 0.09);
+      border-radius: 12px;
+      overflow: hidden;
+      max-width: 1240px;
+      margin: 0 auto;
+      box-shadow: 0 4px 28px rgba(14, 63, 38, 0.08);
+    }
+    .app-sidebar {
+      background: var(--kp-pasture-mid);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+    .sb-brand {
+      padding: 18px 16px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .sb-mark {
+      width: 32px;
+      height: 22px;
+      border-radius: 3px;
+      background: var(--kp-paper);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .sb-mark img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .sb-name {
+      font-family: var(--kp-serif);
+      font-size: 17px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .sb-tag {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.55);
+      margin-top: 3px;
+    }
+    .sb-user {
+      margin: 10px 12px 4px;
+      padding: 9px 11px;
+      background: rgba(255, 255, 255, 0.09);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 8px;
+    }
+    .sb-user-name {
+      font-size: 12px;
+      font-weight: 500;
+      color: #fff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .sb-user-org {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.55);
+      margin-top: 2px;
+    }
+    .sb-group {
+      font-size: 9px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.35);
+      padding: 14px 16px 4px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .sb-nav {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 16px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.70);
+      cursor: pointer;
+      border-left: 2px solid transparent;
+      background: transparent;
+      border-top: none;
+      border-right: none;
+      border-bottom: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+    }
+    .sb-nav:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+    .sb-nav.active {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border-left-color: #fff;
+    }
+    .sb-nav-icon {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      opacity: 0.8;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+    .sb-nav.active .sb-nav-icon { opacity: 1; }
+    .sb-badge {
+      background: #E24B4A;
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 100px;
+      margin-left: auto;
+    }
+    .sb-footer {
+      margin-top: auto;
+      padding: 12px 12px 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .sb-signout {
+      width: 100%;
+      background: transparent;
+      color: var(--kp-gold);
+      border: 1px solid var(--kp-gold);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-family: var(--kp-sans);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .sb-signout:hover { background: rgba(195, 167, 106, 0.15); }
+    .app-main {
+      overflow-y: auto;
+      background: #FFFFFF;
+      padding: 24px 28px 40px;
+    }
+    .app-view { display: none; }
+    .app-view.visible { display: block; }
+
+    .av-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .av-title {
+      font-family: var(--kp-serif);
+      font-size: 1.7rem;
+      font-weight: 500;
+      color: var(--kp-pasture-deep);
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+    .av-sub {
+      font-size: 12px;
+      color: var(--kp-ink-muted);
+    }
+    .av-placeholder {
+      background: #FAF7EE;
+      border: 1px dashed rgba(0, 0, 0, 0.16);
+      border-radius: 10px;
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--kp-ink-muted);
+    }
+    .av-placeholder h3 {
+      font-family: var(--kp-serif);
+      font-weight: 500;
+      font-size: 1.3rem;
+      color: var(--kp-pasture-deep);
+      margin-bottom: 8px;
+    }
+    .av-placeholder p {
+      font-size: 13px;
+      line-height: 1.5;
+      max-width: 460px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 760px) {
+      .app-shell { grid-template-columns: 1fr; min-height: auto; }
+      .app-sidebar { flex-direction: row; overflow-x: auto; }
+      .sb-footer { display: none; }
+    }
+
     .planner-extrap {
       font-size: 11px;
       color: var(--kp-gold-kraft);
@@ -951,9 +1148,56 @@
   </section>
 
   <!-- ================================================================
-       DASHBOARD
+       APP SHELL (sidebar + sub-views) — shown after auth
   ================================================================ -->
-  <section id="sectionDashboard" class="section">
+  <section id="sectionApp" class="section">
+    <div class="app-shell">
+
+      <aside class="app-sidebar">
+        <div class="sb-brand">
+          <div class="sb-mark"><img src="/brand/kaiprova-mark.svg" alt="" /></div>
+          <div>
+            <div class="sb-name">KaiProva</div>
+            <div class="sb-tag">Verified Low-Carbon Beef</div>
+          </div>
+        </div>
+        <div class="sb-user">
+          <div class="sb-user-name" id="sbUserName">—</div>
+          <div class="sb-user-org" id="sbUserOrg"></div>
+        </div>
+
+        <div class="sb-group">My Farm</div>
+        <button class="sb-nav" data-view="sectionOverview"><span class="sb-nav-icon">◉</span>Overview</button>
+        <button class="sb-nav active" data-view="sectionDashboard"><span class="sb-nav-icon">🐄</span>My Mobs</button>
+        <button class="sb-nav" data-view="sectionPlanner"><span class="sb-nav-icon">📊</span>Supply Planner</button>
+
+        <div class="sb-group">Commercial</div>
+        <button class="sb-nav" data-view="sectionOffers"><span class="sb-nav-icon">🔔</span>Offers<span class="sb-badge" id="sbOffersBadge" style="display:none">0</span></button>
+
+        <div class="sb-group">Verification</div>
+        <button class="sb-nav" data-view="sectionTrace"><span class="sb-nav-icon">🔗</span>Trace</button>
+
+        <div class="sb-footer">
+          <button class="sb-signout" id="btnSignOutSidebar">Sign out</button>
+        </div>
+      </aside>
+
+      <div class="app-main">
+
+        <div class="app-view" id="sectionOverview">
+          <div class="av-hdr">
+            <div>
+              <h1 class="av-title">Overview</h1>
+              <p class="av-sub">Your farm at a glance.</p>
+            </div>
+          </div>
+          <div class="av-placeholder">
+            <h3>Overview coming in Phase 2</h3>
+            <p>Mob count, total head, last upload, carbon summary, and alerts will render here. For now, use <strong>My Mobs</strong> for the full list and <strong>Supply Planner</strong> for a per-mob forecast with carbon.</p>
+          </div>
+        </div>
+
+        <div class="app-view visible" id="sectionDashboard">
 
     <div class="dash-header">
       <h1 class="dash-title" id="dashFarmName">—</h1>
@@ -998,12 +1242,9 @@
       <div id="uploadAlert"></div>
     </div>
 
-  </section>
+  </div>
 
-  <!-- ================================================================
-       SUPPLY PLANNER
-  ================================================================ -->
-  <section id="sectionPlanner" class="section">
+  <div class="app-view" id="sectionPlanner">
 
     <button class="planner-back" id="btnPlannerBack">← Back to dashboard</button>
 
@@ -1061,6 +1302,36 @@
       <p style="font-size:13px;margin:0">We take your last weigh, project growth forward at your chosen daily gain, and show when the mob will reach target weight plus projected value at a dressing percentage of 53%. Change the ADG, target weight or price to model different scenarios.</p>
     </div>
 
+        </div><!-- /sectionPlanner -->
+
+        <div class="app-view" id="sectionOffers">
+          <div class="av-hdr">
+            <div>
+              <h1 class="av-title">Offers</h1>
+              <p class="av-sub">AI supply matches and contract invitations.</p>
+            </div>
+          </div>
+          <div class="av-placeholder">
+            <h3>Offers feed coming in Phase 4</h3>
+            <p>When a processor or brand needs supply that matches your mobs — breed, class, drop, carbon score — an offer lands here. Accept to lock in a contract; decline to stay open.</p>
+          </div>
+        </div>
+
+        <div class="app-view" id="sectionTrace">
+          <div class="av-hdr">
+            <div>
+              <h1 class="av-title">Trace</h1>
+              <p class="av-sub">Chain of custody from farm to plate.</p>
+            </div>
+          </div>
+          <div class="av-placeholder">
+            <h3>Traceability timeline coming in Phase 5</h3>
+            <p>NAIT/NLIS movements, weigh events, processor kill records, and the verified carbon certificate will render as a timeline per mob. Buyers scan the QR on the cert to see this same chain.</p>
+          </div>
+        </div>
+
+      </div><!-- /.app-main -->
+    </div><!-- /.app-shell -->
   </section>
 
 </main>
@@ -1074,11 +1345,46 @@ const SUPABASE_ANON_KEY = 'sb_publishable_FGT8ihbVKO7F9nPNQCsIFQ__ATCkcTA';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const $ = id => document.getElementById(id);
-const SECTIONS = ['sectionLogin', 'sectionMagicSent', 'sectionRegister', 'sectionDashboard', 'sectionPlanner'];
+const TOP_SECTIONS = ['sectionLogin', 'sectionMagicSent', 'sectionRegister', 'sectionApp'];
+const APP_VIEWS = ['sectionOverview', 'sectionDashboard', 'sectionPlanner', 'sectionOffers', 'sectionTrace'];
 
 function showSection(id) {
-  SECTIONS.forEach(s => $(s).classList.remove('visible'));
-  $(id).classList.add('visible');
+  const hdr = $('siteHeader');
+  if (APP_VIEWS.includes(id)) {
+    TOP_SECTIONS.forEach(s => $(s).classList.remove('visible'));
+    $('sectionApp').classList.add('visible');
+    APP_VIEWS.forEach(v => $(v).classList.remove('visible'));
+    $(id).classList.add('visible');
+    document.querySelectorAll('.sb-nav').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.view === id);
+    });
+    // Sidebar has its own signout — hide the top header bar in app views
+    if (hdr) hdr.classList.remove('visible');
+  } else {
+    TOP_SECTIONS.forEach(s => $(s).classList.remove('visible'));
+    APP_VIEWS.forEach(v => $(v).classList.remove('visible'));
+    $(id).classList.add('visible');
+    // Keep header for auth flow (register etc.) if it's already visible
+  }
+}
+
+document.querySelectorAll('.sb-nav').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const view = btn.dataset.view;
+    if (!view) return;
+    if (view === 'sectionPlanner' && !plannerMob) {
+      showSection('sectionDashboard');
+      return;
+    }
+    showSection(view);
+  });
+});
+
+const _sbSignout = document.getElementById('btnSignOutSidebar');
+if (_sbSignout) {
+  _sbSignout.addEventListener('click', async () => {
+    await supabase.auth.signOut();
+  });
 }
 
 function setAlert(id, msg, type = 'info') {
@@ -1119,13 +1425,14 @@ async function handleSession(session) {
     return;
   }
 
-  $('siteHeader').classList.add('visible');
   currentFarm = await fetchFirstFarm(session.access_token);
 
   if (!currentFarm) {
+    $('siteHeader').classList.add('visible');
     resetWizard();
     showSection('sectionRegister');
   } else {
+    $('siteHeader').classList.remove('visible');
     showSection('sectionDashboard');
     loadDashboard(currentFarm, session.access_token);
   }
@@ -1148,6 +1455,10 @@ async function fetchFirstFarm(token) {
 async function loadDashboard(farm, token) {
   $('dashFarmName').textContent = farm.farm_name;
   $('dashFarmMeta').textContent = `${farm.region} · ${farmTypeLabel(farm.farm_type)}`;
+  const _sbName = $('sbUserName');
+  if (_sbName) _sbName.textContent = (currentSession && currentSession.user && currentSession.user.email) || 'Farmer';
+  const _sbOrg = $('sbUserOrg');
+  if (_sbOrg) _sbOrg.textContent = farm.farm_name || '';
 
   $('statMobs').textContent = '—';
   $('statHead').textContent = '—';
