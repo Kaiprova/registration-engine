@@ -2528,8 +2528,15 @@ function recalcCalculator() {
   if (el) el.addEventListener('input', recalcCalculator);
 });
 
-// Initial render after DOM is ready
-if (document.getElementById('calcChips')) recalcCalculator();
+// Initial render — deferred to next tick so all const declarations
+// (DRESS, WEANING_LW_KG, LCA tables etc.) have initialised first.
+// Without this, mobFinishingMonths throws TDZ ReferenceError and halts
+// the entire script, breaking btnSendMagicLink and other handlers.
+setTimeout(() => {
+  if (document.getElementById('calcChips')) {
+    try { recalcCalculator(); } catch (e) { console.warn('[calc init] deferred:', e.message); }
+  }
+}, 0);
 
 // ---- Mob options (Phase 3c) ----
 (function wireMobOptionsToggle() {
