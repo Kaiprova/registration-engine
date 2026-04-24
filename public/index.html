@@ -81,10 +81,17 @@
 
     /* ---- Layout ---- */
     .main {
+      margin: 0 auto;
+      padding: 0;
+    }
+    /* Auth/onboarding sections keep the original narrow centered column */
+    #sectionLogin, #sectionMagicSent, #sectionRegister {
       max-width: 700px;
       margin: 0 auto;
       padding: 3rem 1.5rem 5rem;
     }
+    /* The app shell handles its own width (max 1700px) — no parent clamp */
+    #sectionApp { max-width: none; padding: 0; }
 
     /* ---- Cards ---- */
     .card {
