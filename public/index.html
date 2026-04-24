@@ -1071,6 +1071,35 @@
       text-align: center;
     }
 
+    /* Calculator-specific layout helpers */
+    .calc-row {
+      display: grid;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .calc-row-3 { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 640px) { .calc-row-3 { grid-template-columns: 1fr; } }
+
+    .calc-slider { margin-bottom: 1rem; }
+    .calc-slider-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .calc-slider-head label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--kp-ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .calc-slider-val {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--kp-pasture-mid);
+    }
+
     /* 2-column grid: stacked below 1400px, side-by-side above.
        Higher breakpoint so laptop viewports don't get squeezed. */
     .md-two-col { display: block; }
@@ -1591,7 +1620,7 @@
         </div>
 
         <div class="sb-group">My Farm</div>
-        <button class="sb-nav" data-view="sectionOverview"><span class="sb-nav-icon">◉</span>Overview</button>
+        <button class="sb-nav" data-view="sectionOverview"><span class="sb-nav-icon">📊</span>Calculator</button>
         <button class="sb-nav active" data-view="sectionDashboard"><span class="sb-nav-icon">🐄</span>My Mobs</button>
         <button class="sb-nav" data-view="sectionPlanner"><span class="sb-nav-icon">📊</span>Supply Planner</button>
 
@@ -1611,13 +1640,88 @@
         <div class="app-view" id="sectionOverview">
           <div class="av-hdr">
             <div>
-              <h1 class="av-title">Overview</h1>
-              <p class="av-sub">Your farm at a glance.</p>
+              <h1 class="av-title">Young Beef Carbon Calculator</h1>
+              <p class="av-sub">Play with an individual animal's numbers — no data upload required. Once you upload weigh sheets, the Supply Planner projects from real growth. Same LCA engine underneath: AgResearch RE450/2024/054.</p>
             </div>
           </div>
-          <div class="av-placeholder">
-            <h3>Overview coming in Phase 2</h3>
-            <p>Mob count, total head, last upload, carbon summary, and alerts will render here. For now, use <strong>My Mobs</strong> for the full list and <strong>Supply Planner</strong> for a per-mob forecast with carbon.</p>
+
+          <div class="md-two-col">
+            <div class="md-section">
+              <h2>Inputs</h2>
+
+              <div class="calc-row calc-row-3">
+                <label class="md-options-field">
+                  <span class="md-options-label">Class</span>
+                  <select id="calcClass">
+                    <option value="steer" selected>Steer</option>
+                    <option value="heifer">Heifer</option>
+                    <option value="bull">Bull</option>
+                  </select>
+                </label>
+                <label class="md-options-field">
+                  <span class="md-options-label">Origin</span>
+                  <select id="calcOrigin">
+                    <option value="dairy" selected>Dairy</option>
+                    <option value="beef">Beef</option>
+                  </select>
+                </label>
+                <label class="md-options-field">
+                  <span class="md-options-label">Season</span>
+                  <select id="calcSeason">
+                    <option value="spring" selected>Spring</option>
+                    <option value="autumn">Autumn</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="calc-slider">
+                <div class="calc-slider-head">
+                  <label>Birth weight</label>
+                  <span class="calc-slider-val"><span id="calcBwVal">40.0</span> kg</span>
+                </div>
+                <input type="range" id="calcBw" min="37.5" max="40.0" step="0.5" value="40.0" class="planner-slider" />
+                <div class="planner-scale"><span>37.5 kg</span><span>38.75</span><span>40 kg</span></div>
+              </div>
+
+              <div class="calc-slider">
+                <div class="calc-slider-head">
+                  <label>Average Daily Gain</label>
+                  <span class="calc-slider-val"><span id="calcAdgVal">900</span> g/day</span>
+                </div>
+                <input type="range" id="calcAdg" min="500" max="1400" step="10" value="900" class="planner-slider" />
+                <div class="planner-scale"><span>500</span><span>950</span><span>1400 g/d</span></div>
+              </div>
+
+              <div class="calc-row calc-row-3">
+                <label class="md-options-field">
+                  <span class="md-options-label">Target LW (kg)</span>
+                  <input type="number" id="calcTargetLW" min="300" max="800" step="10" value="600" />
+                </label>
+                <label class="md-options-field">
+                  <span class="md-options-label">Head count</span>
+                  <input type="number" id="calcHead" min="1" step="1" value="1" />
+                </label>
+                <label class="md-options-field">
+                  <span class="md-options-label">Schedule ($/kg CW)</span>
+                  <input type="number" id="calcPrice" min="0" step="0.05" value="8.00" />
+                </label>
+              </div>
+
+              <div class="md-carbon-note" style="margin-top:0.75rem">Sliders update results instantly. All inputs feed the same AgResearch 54-scenario model the real Mob Detail page uses.</div>
+            </div>
+
+            <div class="md-section">
+              <h2>Projection <span class="md-carbon-sub">live</span></h2>
+              <p class="md-carbon-lede" id="calcLede"></p>
+              <div class="md-carbon-assump" id="calcAssump"></div>
+              <div class="planner-result-grid" id="calcChips"></div>
+              <div class="planner-result-total">
+                <div class="planner-result-money" id="calcMoney">$—</div>
+                <div class="planner-result-break" id="calcPerHead"></div>
+                <div class="planner-result-break" id="calcMobFootprint"></div>
+              </div>
+              <div class="md-carbon-note" id="calcWarn" style="color:var(--kp-gold-kraft);display:none"></div>
+            </div>
           </div>
         </div>
 
@@ -2320,6 +2424,112 @@ function renderMobDetailCarbon(mob, estLW) {
 
   note.textContent = `LCA: AgResearch RE450/2024/054 \u00b7 ${origin}-origin ${cls}, ${season} drop, 40 kg birth weight, finishing at ~${months} months`;
 }
+
+// ---- Standalone Carbon Calculator (Phase 4) ----
+function recalcCalculator() {
+  const cls    = $('calcClass').value;
+  const origin = $('calcOrigin').value;
+  const season = $('calcSeason').value;
+  const bw     = +$('calcBw').value;
+  const adg    = +$('calcAdg').value;
+  const target = +$('calcTargetLW').value || 0;
+  const head   = Math.max(1, +$('calcHead').value || 1);
+  const price  = +$('calcPrice').value || 0;
+
+  // Live slider labels
+  $('calcBwVal').textContent = bw.toFixed(1);
+  $('calcAdgVal').textContent = adg;
+
+  const adgKg = adg / 1000;
+  const months = mobFinishingMonths(target, adgKg);
+  const lca = lcaCalcExtended(season, cls, bw, months, adg, origin);
+
+  const projCW = +(target * DRESS).toFixed(1);
+  const perHead = projCW * price;
+  const total = perHead * head;
+  const daysToTarget = adgKg > 0 ? Math.ceil((target - 100) / adgKg) : 0;
+  const killDate = new Date(Date.now() + daysToTarget * 86400000);
+  const killDateStr = killDate.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' });
+  const mobCO2eT = +((lca.fpCW * projCW * head) / 1000).toFixed(1);
+
+  const vsBNLZ = +(((BNLZ_LW - lca.fpLW) / BNLZ_LW) * 100).toFixed(1);
+  const vsSign = vsBNLZ >= 0 ? '−' : '+';
+  const vsAbs  = Math.abs(vsBNLZ).toFixed(1);
+  const vsCls  = vsBNLZ >= 0 ? 'planner-result-chip--better' : 'planner-result-chip--worse';
+
+  // Chips
+  $('calcChips').innerHTML = `
+    <div class="planner-result-chip">
+      <div class="planner-chip-label">Days to finish</div>
+      <div class="planner-chip-value">${daysToTarget}</div>
+      <div class="planner-chip-sub">from 100 kg weaning</div>
+    </div>
+    <div class="planner-result-chip">
+      <div class="planner-chip-label">Kill date</div>
+      <div class="planner-chip-value" style="font-size:1.1rem">${killDateStr}</div>
+      <div class="planner-chip-sub">from today</div>
+    </div>
+    <div class="planner-result-chip">
+      <div class="planner-chip-label">Carcass wt</div>
+      <div class="planner-chip-value">${projCW} kg</div>
+      <div class="planner-chip-sub">${target} × 53%</div>
+    </div>
+    <div class="planner-result-chip planner-result-chip--carbon">
+      <div class="planner-chip-label">Footprint (LW)</div>
+      <div class="planner-chip-value">${lca.fpLW.toFixed(2)}</div>
+      <div class="planner-chip-sub">kg CO₂e/kg LW</div>
+    </div>
+    <div class="planner-result-chip planner-result-chip--carbon">
+      <div class="planner-chip-label">Footprint (CW)</div>
+      <div class="planner-chip-value">${lca.fpCW.toFixed(2)}</div>
+      <div class="planner-chip-sub">kg CO₂e/kg CW</div>
+    </div>
+    <div class="planner-result-chip ${vsCls}">
+      <div class="planner-chip-label">vs B+LNZ ${BNLZ_LW}</div>
+      <div class="planner-chip-value">${vsSign}${vsAbs}%</div>
+      <div class="planner-chip-sub">${vsBNLZ >= 0 ? 'below' : 'above'} benchmark</div>
+    </div>`;
+
+  // Lede + assumptions
+  $('calcLede').innerHTML = `Projected footprint for ${head === 1 ? 'a single ' + cls : head + ' head'} finishing at <strong>${target}&nbsp;kg LW</strong> with growth at <strong>${adg}&nbsp;g/day</strong>.`;
+  const chips = [
+    { k: 'Class',   v: cls },
+    { k: 'Origin',  v: origin + '-origin' },
+    { k: 'Season',  v: season + ' drop' },
+    { k: 'Birth wt', v: bw.toFixed(1) + ' kg' },
+    { k: 'Target',  v: target + ' kg LW' },
+    { k: 'ADG',     v: adg + ' g/day' },
+    { k: 'Finishing', v: '~' + months + ' mo' }
+  ];
+  $('calcAssump').innerHTML = chips.map(c => `<span class="md-assump-chip"><strong>${c.k}</strong>${c.v}</span>`).join('');
+
+  // Dollar total
+  $('calcMoney').textContent = `$${Math.round(total).toLocaleString()}`;
+  $('calcPerHead').textContent = `$${Math.round(perHead).toLocaleString()} per head × ${head} head @ $${price.toFixed(2)}/kg CW`;
+  $('calcMobFootprint').textContent = `${mobCO2eT} t CO₂e total · ${origin}-origin ${cls}, ${season} drop, finishing ~${months} mo`;
+
+  // Extrapolation warning
+  const warn = $('calcWarn');
+  const notes = [];
+  if (lca.xAge) notes.push('age >18mo extrapolated');
+  if (lca.xLWG) notes.push('ADG outside 700–1000 g/d validated range');
+  if (origin === 'beef') notes.push('beef-bred uplift (+30%) applied');
+  if (notes.length) {
+    warn.style.display = 'block';
+    warn.textContent = '⚠ Indicative — ' + notes.join(' · ');
+  } else {
+    warn.style.display = 'none';
+  }
+}
+
+// Wire calculator inputs — any change recalculates live
+['calcClass','calcOrigin','calcSeason','calcBw','calcAdg','calcTargetLW','calcHead','calcPrice'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', recalcCalculator);
+});
+
+// Initial render after DOM is ready
+if (document.getElementById('calcChips')) recalcCalculator();
 
 // ---- Mob options (Phase 3c) ----
 (function wireMobOptionsToggle() {
