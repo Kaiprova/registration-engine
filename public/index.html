@@ -364,6 +364,58 @@
     }
     .wizard-nav .btn { flex: 1; }
 
+    /* Role checkboxes — "where your farm fits in the chain" */
+    .role-group {
+      display: grid;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .role-option {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 14px 16px;
+      border: 1px solid var(--kp-border);
+      border-radius: 10px;
+      background: var(--kp-paper-surface);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .role-option:hover { border-color: var(--kp-pasture-mid); }
+    .role-option input[type="checkbox"] {
+      width: 18px; height: 18px;
+      margin-top: 2px;
+      accent-color: var(--kp-pasture-mid);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .role-option.checked {
+      border-color: var(--kp-pasture-mid);
+      background: rgba(26, 107, 66, 0.06);
+    }
+    .role-option-body { flex: 1; min-width: 0; }
+    .role-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--kp-ink);
+    }
+    .role-desc {
+      font-size: 12px;
+      color: var(--kp-ink-muted);
+      margin-top: 2px;
+      line-height: 1.45;
+    }
+    .role-chip {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(26, 107, 66, 0.1);
+      color: var(--kp-pasture-deep);
+      font-size: 12px;
+      font-weight: 500;
+      margin: 2px 4px 2px 0;
+    }
+
     /* Confirmation summary */
     .summary-list {
       list-style: none;
@@ -1498,8 +1550,8 @@
 
     <!-- Step 1: Farm name + region -->
     <div class="card" id="wizardStep1">
-      <h2>Tell us about your farm</h2>
-      <p>Start with the basics — your farm name and where you're located in New Zealand.</p>
+      <h2>Welcome. Let's set up your farm.</h2>
+      <p>Good to have you. You're among the first farms on the platform. Start with the basics — your farm name and region.</p>
 
       <div class="field-group">
         <label for="farmName">Farm name</label>
@@ -1536,10 +1588,10 @@
       </div>
     </div>
 
-    <!-- Step 2: Herd size + farm type -->
+    <!-- Step 2: Herd size + role(s) -->
     <div class="card" id="wizardStep2" style="display:none">
-      <h2>About your herd</h2>
-      <p>Help us understand the scale and type of your operation.</p>
+      <h2>Where your farm fits</h2>
+      <p>Approximate scale, and which part of the chain your farm covers. Tick all that apply — most farms cover one, some cover all three.</p>
 
       <div class="field-group">
         <label for="herdSize">Approximate herd size</label>
@@ -1547,14 +1599,29 @@
       </div>
 
       <div class="field-group">
-        <label for="farmType">Farm type</label>
-        <div class="select-wrap">
-          <select id="farmType">
-            <option value="">Select type…</option>
-            <option value="dairy">Dairy</option>
-            <option value="dairy_support">Dairy Support</option>
-            <option value="dairy_and_support">Dairy &amp; Support</option>
-          </select>
+        <label>Farm role</label>
+        <div class="role-group" id="farmRoles">
+          <label class="role-option">
+            <input type="checkbox" value="dairy_birth" />
+            <div class="role-option-body">
+              <div class="role-title">Dairy-Birth</div>
+              <div class="role-desc">Calving cows — surplus calves placed into the system instead of leaving the farm at four days.</div>
+            </div>
+          </label>
+          <label class="role-option">
+            <input type="checkbox" value="rearing" />
+            <div class="role-option-body">
+              <div class="role-title">Rearing</div>
+              <div class="role-desc">Taking calves from bobby age and growing them through weaning to around 100 kg LW.</div>
+            </div>
+          </label>
+          <label class="role-option">
+            <input type="checkbox" value="finishing_100kg" />
+            <div class="role-option-body">
+              <div class="role-title">Finishing 100 kg+</div>
+              <div class="role-desc">Taking stock from 100 kg onward and growing them to processing weight.</div>
+            </div>
+          </label>
         </div>
       </div>
 
@@ -1568,8 +1635,8 @@
 
     <!-- Step 3: Confirmation summary -->
     <div class="card" id="wizardStep3" style="display:none">
-      <h2>Confirm your details</h2>
-      <p>Take a look before we create your farm — you can always update these later.</p>
+      <h2>One last look</h2>
+      <p>Looks right? Register your farm and you're in. You can change any of this later.</p>
 
       <ul class="summary-list">
         <li class="summary-item">
@@ -1585,7 +1652,7 @@
           <span class="summary-val" id="confirmHerdSize">—</span>
         </li>
         <li class="summary-item">
-          <span class="summary-key">Farm type</span>
+          <span class="summary-key">Role</span>
           <span class="summary-val" id="confirmFarmType">—</span>
         </li>
       </ul>
@@ -1594,7 +1661,7 @@
 
       <div class="wizard-nav">
         <button class="btn btn-secondary" id="btnStep3Back">← Back</button>
-        <button class="btn btn-primary" id="btnRegisterFarm">Register farm</button>
+        <button class="btn btn-primary" id="btnRegisterFarm">Register my farm</button>
       </div>
     </div>
 
@@ -3094,17 +3161,35 @@ function recalcPlanner() {
   $('plannerFooter').textContent = `Est. weight ${estLW} kg (weighed ${avgW} kg, ${daysSince}d ago) · $${price.toFixed(2)}/kg CW · 53% dressing · LCA: AgResearch RE450/2024/054`;
 }
 
-function farmTypeLabel(type) {
+// Human label for a single role slug. New vocab (dairy_birth/rearing/finishing_100kg)
+// plus legacy values from earlier signups.
+function roleLabel(slug) {
   const map = {
+    dairy_birth: 'Dairy-Birth',
+    rearing: 'Rearing',
+    finishing_100kg: 'Finishing 100 kg+',
+    // Legacy values still in the DB from the first wizard
     dairy: 'Dairy',
     dairy_support: 'Dairy Support',
     dairy_and_support: 'Dairy & Support',
-    dairy_birth: 'Dairy Birth Farm',
     rearer: 'Rearer',
     finisher: 'Finisher',
     rearer_finisher: 'Rearer / Finisher',
   };
-  return map[type] || (type || '').replace(/_/g, ' ');
+  return map[slug] || (slug || '').replace(/_/g, ' ');
+}
+
+// farm_type column is stored as a CSV of role slugs (e.g. "dairy_birth,rearing").
+// This renders that as plain text; callers that want chips use farmTypeChips.
+function farmTypeLabel(type) {
+  if (!type) return '—';
+  return String(type).split(',').map(s => s.trim()).filter(Boolean).map(roleLabel).join(' · ');
+}
+
+function farmTypeChips(type) {
+  if (!type) return '—';
+  return String(type).split(',').map(s => s.trim()).filter(Boolean)
+    .map(slug => `<span class="role-chip">${roleLabel(slug)}</span>`).join('');
 }
 
 function escHtml(str) {
@@ -3157,18 +3242,25 @@ $('btnStep2Back').addEventListener('click', () => {
   goToWizardStep(1);
 });
 
+// Visual state for the role cards — thicken the border when checked.
+document.querySelectorAll('#farmRoles .role-option input[type="checkbox"]').forEach(cb => {
+  cb.addEventListener('change', () => {
+    cb.closest('.role-option').classList.toggle('checked', cb.checked);
+  });
+});
+
 $('btnStep2Next').addEventListener('click', () => {
   const herd_size = parseInt($('herdSize').value, 10);
-  const farm_type = $('farmType').value;
+  const roles = Array.from(document.querySelectorAll('#farmRoles input[type="checkbox"]:checked')).map(cb => cb.value);
   if (!herd_size || herd_size < 1) return setAlert('step2Alert', 'Please enter your approximate herd size.', 'error');
-  if (!farm_type) return setAlert('step2Alert', 'Please select a farm type.', 'error');
+  if (roles.length === 0) return setAlert('step2Alert', 'Please tick at least one role — you can pick more than one.', 'error');
   setAlert('step2Alert', '');
   wizardData.herd_size = herd_size;
-  wizardData.farm_type = farm_type;
+  wizardData.farm_type = roles.join(',');
   $('confirmFarmName').textContent = wizardData.farm_name;
   $('confirmRegion').textContent = wizardData.region;
   $('confirmHerdSize').textContent = `~${wizardData.herd_size.toLocaleString()} animals`;
-  $('confirmFarmType').textContent = farmTypeLabel(wizardData.farm_type);
+  $('confirmFarmType').innerHTML = farmTypeChips(wizardData.farm_type);
   goToWizardStep(3);
 });
 
