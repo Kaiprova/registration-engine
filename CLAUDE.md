@@ -19,10 +19,19 @@ Backend DB: Supabase (project ID: `tafwprmxhwuhxckjdwdj`)
 registration-engine/
 ├── server.js          # Express backend (API + static serving)
 ├── public/
-│   └── index.html     # Single-page frontend (all UI)
+│   ├── index.html     # Single-page farmer frontend (all UI)
+│   └── admin.html     # Admin SPA — /admin route, gated by ADMIN_EMAILS
 ├── supabase/
 │   └── schema.sql     # DB schema (keep in sync with live Supabase)
 └── package.json
+
+Admin surface (added 24 Apr 2026):
+  - GET /admin                → serves public/admin.html
+  - GET /api/admin/overview   → platform totals (users, farms, mobs, uploads, distinct EIDs, last-7d/30d deltas)
+  - GET /api/admin/users      → per-user rollup with farms/mobs drill-down
+  Access gate: requireAdmin middleware — email must be in ADMIN_EMAILS env
+  (comma-separated). Falls back to `info@miti.nz,alps2ocean.foods.nz@gmail.com`
+  if env not set. All admin queries use the service role key and bypass RLS.
 ```
 
 ## Supabase Schema (as of 23 Apr 2026)

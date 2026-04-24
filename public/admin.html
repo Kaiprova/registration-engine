@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <title>KaiProva — Admin</title>
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/brand/favicon-16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/brand/favicon-180.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/brand/tokens.css" />
+
+  <style>
+    :root {
+      color-scheme: light;
+      --kp-pasture-deep: #0E3F26;
+      --kp-pasture-mid: #1A6B42;
+      --kp-pasture-lit: #1F8453;
+      --kp-gold: #C3A76A;
+      --kp-paper: #F3EFE6;
+      --kp-paper-surface: #FBF8F0;
+      --kp-ink: #11221A;
+      --kp-ink-muted: #2A3E33;
+      --kp-ink-soft: #6B7571;
+      --kp-border: #D5CFC4;
+      --kp-border-soft: #E5E1D6;
+      --kp-radius: 10px;
+      --kp-sans: 'Inter Tight', system-ui, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { background: var(--kp-paper); }
+    body {
+      font-family: var(--kp-sans);
+      background: var(--kp-paper);
+      color: var(--kp-ink);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Header */
+    .site-header {
+      background: var(--kp-pasture-deep);
+      padding: 0 2rem;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .site-header .brand {
+      display: flex; align-items: center; gap: 14px;
+      color: var(--kp-paper-surface);
+      font-weight: 600; font-size: 14px; letter-spacing: 0.04em;
+    }
+    .site-header img { height: 28px; display: block; }
+    .site-header .tag {
+      color: var(--kp-gold);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      border-left: 1px solid rgba(195,167,106,0.4);
+      padding-left: 14px;
+    }
+    .site-header .right { display: flex; align-items: center; gap: 14px; color: var(--kp-paper-surface); font-size: 13px; }
+    .site-header .right .email { opacity: 0.85; }
+    .btn-signout {
+      background: transparent;
+      color: var(--kp-gold);
+      border: 1px solid var(--kp-gold);
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-family: var(--kp-sans);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn-signout:hover { background: rgba(195, 167, 106, 0.15); }
+
+    /* Layout */
+    main { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+
+    /* Login card */
+    .login-wrap {
+      min-height: calc(100vh - 60px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 2rem;
+    }
+    .login-card {
+      width: 100%; max-width: 420px;
+      background: var(--kp-paper-surface);
+      border: 1px solid var(--kp-border);
+      border-radius: var(--kp-radius);
+      padding: 2rem;
+    }
+    .login-card h1 { font-size: 22px; margin-bottom: 6px; }
+    .login-card p { color: var(--kp-ink-muted); font-size: 14px; margin-bottom: 1.25rem; }
+    .login-card input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--kp-border);
+      border-radius: 8px;
+      background: white;
+      font-family: var(--kp-sans);
+      font-size: 14px;
+    }
+    .login-card input:focus { outline: 2px solid var(--kp-pasture-mid); outline-offset: -1px; }
+    .btn-primary {
+      width: 100%;
+      background: var(--kp-pasture-mid);
+      color: white;
+      border: 0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-family: var(--kp-sans);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 14px;
+    }
+    .btn-primary:hover { background: var(--kp-pasture-lit); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .login-msg {
+      margin-top: 1rem;
+      font-size: 13px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      display: none;
+    }
+    .login-msg.success { display: block; background: #E8F3EC; color: var(--kp-pasture-deep); border: 1px solid #CDE3D4; }
+    .login-msg.error   { display: block; background: #F9E7E3; color: #7A2418; border: 1px solid #E9C7C0; }
+
+    /* Access denied */
+    .denied {
+      max-width: 560px;
+      margin: 4rem auto;
+      background: var(--kp-paper-surface);
+      border: 1px solid var(--kp-border);
+      border-radius: var(--kp-radius);
+      padding: 2rem;
+      text-align: center;
+    }
+    .denied h2 { font-size: 20px; margin-bottom: 8px; }
+    .denied p { color: var(--kp-ink-muted); font-size: 14px; }
+
+    /* Page header */
+    .page-head {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .page-head h1 { font-size: 26px; font-weight: 600; }
+    .page-head .sub { color: var(--kp-ink-soft); font-size: 13px; margin-top: 4px; }
+    .page-head .refresh {
+      background: white; color: var(--kp-ink);
+      border: 1px solid var(--kp-border);
+      padding: 8px 14px; border-radius: 8px;
+      font-family: var(--kp-sans); font-size: 13px; cursor: pointer;
+    }
+    .page-head .refresh:hover { border-color: var(--kp-pasture-mid); }
+
+    /* Tile grid */
+    .tiles {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 14px;
+      margin-bottom: 2rem;
+    }
+    .tile {
+      background: var(--kp-paper-surface);
+      border: 1px solid var(--kp-border);
+      border-radius: var(--kp-radius);
+      padding: 1.1rem 1.2rem;
+    }
+    .tile .label { font-size: 12px; color: var(--kp-ink-soft); text-transform: uppercase; letter-spacing: 0.08em; }
+    .tile .value { font-size: 30px; font-weight: 600; line-height: 1.1; margin-top: 8px; }
+    .tile .delta { font-size: 12px; color: var(--kp-pasture-lit); margin-top: 6px; }
+    .tile .delta.muted { color: var(--kp-ink-soft); }
+
+    /* Section */
+    .section {
+      background: var(--kp-paper-surface);
+      border: 1px solid var(--kp-border);
+      border-radius: var(--kp-radius);
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+    .section-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--kp-border-soft);
+    }
+    .section-head h2 { font-size: 15px; font-weight: 600; }
+    .section-head .meta { font-size: 12px; color: var(--kp-ink-soft); }
+
+    /* Table */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--kp-border-soft);
+    }
+    th {
+      font-weight: 600;
+      color: var(--kp-ink-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 11px;
+      background: rgba(0,0,0,0.015);
+      cursor: pointer;
+      user-select: none;
+    }
+    th.sorted { color: var(--kp-pasture-deep); }
+    th.sorted::after { content: ' \25BE'; opacity: 0.7; }
+    th.sorted.asc::after { content: ' \25B4'; }
+    tbody tr { cursor: pointer; }
+    tbody tr:hover { background: rgba(26,107,66,0.04); }
+    tbody tr.expanded { background: rgba(26,107,66,0.05); }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    td .email { font-weight: 500; }
+    td .sub { color: var(--kp-ink-soft); font-size: 11px; margin-top: 2px; }
+    .chip {
+      display: inline-block; padding: 2px 8px; border-radius: 999px;
+      font-size: 11px; font-weight: 500; margin-left: 6px;
+    }
+    .chip.admin { background: var(--kp-gold); color: var(--kp-pasture-deep); }
+    .chip.inactive { background: var(--kp-border); color: var(--kp-ink-muted); }
+    .chip.active { background: #DBE9DE; color: var(--kp-pasture-deep); }
+
+    /* Drill-in panel */
+    tr.drill td { padding: 0; background: var(--kp-paper); }
+    .drill-inner { padding: 1rem 1.5rem 1.25rem; border-top: 1px dashed var(--kp-border); }
+    .drill-inner h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--kp-ink-soft); margin-bottom: 10px; }
+    .drill-inner .farm-block { margin-bottom: 12px; padding: 10px 12px; background: var(--kp-paper-surface); border: 1px solid var(--kp-border-soft); border-radius: 8px; }
+    .drill-inner .farm-block .farm-head { font-weight: 600; font-size: 13px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px; }
+    .drill-inner .farm-block .farm-meta { color: var(--kp-ink-soft); font-size: 11px; }
+    .drill-inner table { font-size: 12px; margin-top: 8px; }
+    .drill-inner table th { background: transparent; font-size: 10px; padding: 4px 8px; }
+    .drill-inner table td { padding: 4px 8px; border-bottom: 1px solid var(--kp-border-soft); }
+    .drill-inner .empty { color: var(--kp-ink-soft); font-size: 12px; font-style: italic; padding: 4px 0; }
+
+    .loading { padding: 2rem; text-align: center; color: var(--kp-ink-soft); font-size: 13px; }
+    .error-box { margin: 1rem 0; padding: 12px 14px; background: #F9E7E3; color: #7A2418; border: 1px solid #E9C7C0; border-radius: 8px; font-size: 13px; }
+
+    /* Filter row */
+    .filter-row { display: flex; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--kp-border-soft); flex-wrap: wrap; align-items: center; }
+    .filter-row input {
+      flex: 1 1 240px;
+      padding: 8px 12px;
+      border: 1px solid var(--kp-border);
+      border-radius: 6px;
+      font-family: var(--kp-sans); font-size: 13px;
+      background: white;
+    }
+    .filter-row input:focus { outline: 2px solid var(--kp-pasture-mid); outline-offset: -1px; }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN VIEW -->
+  <div id="loginView" class="login-wrap" style="display:none;">
+    <div class="login-card">
+      <h1>KaiProva admin</h1>
+      <p>Sign in with your admin email. We'll send you a magic link.</p>
+      <input type="email" id="adminEmail" placeholder="you@alps2ocean.co.nz" autocomplete="email" />
+      <button class="btn-primary" id="btnSend">Send magic link</button>
+      <div class="login-msg" id="loginMsg"></div>
+    </div>
+  </div>
+
+  <!-- DENIED VIEW -->
+  <div id="deniedView" style="display:none;">
+    <div class="site-header">
+      <div class="brand"><img src="/brand/kaiprova-horizontal.svg" alt="KaiProva" /><span class="tag">Admin</span></div>
+      <div class="right">
+        <span class="email" id="deniedEmail"></span>
+        <button class="btn-signout" onclick="signOut()">Sign out</button>
+      </div>
+    </div>
+    <div class="denied">
+      <h2>No admin access</h2>
+      <p>Your account doesn't have admin privileges on this platform. If you think this is a mistake, ping Dan.</p>
+    </div>
+  </div>
+
+  <!-- ADMIN VIEW -->
+  <div id="adminView" style="display:none;">
+    <div class="site-header">
+      <div class="brand"><img src="/brand/kaiprova-horizontal.svg" alt="KaiProva" /><span class="tag">Admin</span></div>
+      <div class="right">
+        <span class="email" id="adminWhoami"></span>
+        <button class="btn-signout" onclick="signOut()">Sign out</button>
+      </div>
+    </div>
+
+    <main>
+      <div class="page-head">
+        <div>
+          <h1>Platform</h1>
+          <div class="sub" id="generatedAt">Loading…</div>
+        </div>
+        <button class="refresh" onclick="reload()">Refresh</button>
+      </div>
+
+      <div id="errorBox"></div>
+
+      <section class="tiles" id="tiles"></section>
+
+      <section class="section">
+        <div class="section-head">
+          <h2>Platform users</h2>
+          <span class="meta" id="userMeta"></span>
+        </div>
+        <div class="filter-row">
+          <input type="search" id="userFilter" placeholder="Filter by email, farm name, region…" />
+        </div>
+        <div class="table-wrap">
+          <table id="userTable">
+            <thead>
+              <tr>
+                <th data-sort="email">User</th>
+                <th data-sort="farm_count" class="num-head">Farms</th>
+                <th data-sort="mob_count" class="num-head">Mobs</th>
+                <th data-sort="total_head" class="num-head">Head</th>
+                <th data-sort="weigh_rows" class="num-head">Weighs</th>
+                <th data-sort="distinct_eids" class="num-head">Animals</th>
+                <th data-sort="created_at">Signed up</th>
+                <th data-sort="last_activity">Last activity</th>
+              </tr>
+            </thead>
+            <tbody id="userBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+    const SUPABASE_URL = 'https://tafwprmxhwuhxckjdwdj.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_FGT8ihbVKO7F9nPNQCsIFQ__ATCkcTA';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentSession = null;
+    let cachedUsers = [];
+    let sortKey = 'last_activity';
+    let sortAsc = false;
+    let expandedUser = null;
+
+    // ── Helpers ───────────────────────────────────────────────
+    const fmtNum = n => (n == null ? '–' : Number(n).toLocaleString('en-NZ'));
+    function fmtDate(iso) {
+      if (!iso) return '—';
+      try {
+        const d = new Date(iso);
+        return d.toLocaleDateString('en-NZ', { year: 'numeric', month: 'short', day: 'numeric' });
+      } catch { return iso.slice(0, 10); }
+    }
+    function fmtRel(iso) {
+      if (!iso) return '—';
+      const ms = Date.now() - new Date(iso).getTime();
+      if (isNaN(ms)) return '—';
+      const d = Math.floor(ms / 86400_000);
+      if (d === 0) return 'today';
+      if (d === 1) return 'yesterday';
+      if (d < 30) return `${d}d ago`;
+      if (d < 365) return `${Math.floor(d/30)}mo ago`;
+      return `${Math.floor(d/365)}y ago`;
+    }
+    function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
+    function showError(msg) {
+      const el = document.getElementById('errorBox');
+      el.innerHTML = msg ? `<div class="error-box">${escapeHtml(msg)}</div>` : '';
+    }
+
+    // ── Auth boot ─────────────────────────────────────────────
+    async function boot() {
+      // Supabase drops the token in the URL hash after magic-link redirect.
+      // createClient's default detectSessionInUrl picks it up on construction.
+      const { data: { session } } = await supabase.auth.getSession();
+      currentSession = session;
+
+      supabase.auth.onAuthStateChange((_event, s) => {
+        currentSession = s;
+        if (s) { gotoAdmin(); } else { showLogin(); }
+      });
+
+      if (!session) { showLogin(); return; }
+      gotoAdmin();
+    }
+
+    function showLogin() {
+      document.getElementById('loginView').style.display = 'flex';
+      document.getElementById('adminView').style.display = 'none';
+      document.getElementById('deniedView').style.display = 'none';
+    }
+
+    async function gotoAdmin() {
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('adminView').style.display = 'block';
+      document.getElementById('deniedView').style.display = 'none';
+      document.getElementById('adminWhoami').textContent = currentSession.user.email;
+      document.getElementById('deniedEmail').textContent = currentSession.user.email;
+      await reload();
+    }
+
+    function showDenied() {
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('adminView').style.display = 'none';
+      document.getElementById('deniedView').style.display = 'block';
+    }
+
+    window.signOut = async function() {
+      await supabase.auth.signOut();
+      currentSession = null;
+      showLogin();
+    };
+
+    // ── Login flow ────────────────────────────────────────────
+    document.getElementById('btnSend').addEventListener('click', async () => {
+      const email = document.getElementById('adminEmail').value.trim();
+      const msg = document.getElementById('loginMsg');
+      const btn = document.getElementById('btnSend');
+      msg.className = 'login-msg';
+      if (!email) { msg.className = 'login-msg error'; msg.textContent = 'Enter your email.'; return; }
+      btn.disabled = true; btn.textContent = 'Sending…';
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: window.location.origin + '/admin' }
+      });
+      btn.disabled = false; btn.textContent = 'Send magic link';
+      if (error) { msg.className = 'login-msg error'; msg.textContent = error.message; }
+      else       { msg.className = 'login-msg success'; msg.textContent = `Check ${email} for a sign-in link.`; }
+    });
+
+    // ── Data load ─────────────────────────────────────────────
+    async function api(path) {
+      const res = await fetch(path, { headers: { Authorization: `Bearer ${currentSession.access_token}` } });
+      if (res.status === 403) { showDenied(); throw new Error('forbidden'); }
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `${res.status} ${res.statusText}`);
+      }
+      return res.json();
+    }
+
+    window.reload = async function() {
+      showError('');
+      document.getElementById('generatedAt').textContent = 'Loading…';
+      document.getElementById('tiles').innerHTML = '<div class="loading">Loading overview…</div>';
+      document.getElementById('userBody').innerHTML = '<tr><td colspan="8" class="loading">Loading users…</td></tr>';
+      try {
+        const [ov, us] = await Promise.all([api('/api/admin/overview'), api('/api/admin/users')]);
+        renderTiles(ov);
+        cachedUsers = us.users || [];
+        document.getElementById('userMeta').textContent = `${cachedUsers.length} user${cachedUsers.length === 1 ? '' : 's'}`;
+        renderUserTable();
+        document.getElementById('generatedAt').textContent = 'Updated ' + fmtDate(ov.generated_at) + ' · ' + new Date(ov.generated_at).toLocaleTimeString('en-NZ');
+      } catch (e) {
+        if (e.message !== 'forbidden') showError('Failed to load: ' + e.message);
+      }
+    };
+
+    // ── Tiles ─────────────────────────────────────────────────
+    function renderTiles(o) {
+      const tiles = [
+        { label: 'Registered users', value: o.users, delta: `${o.users_last_7d} new last 7d · ${o.users_last_30d} last 30d` },
+        { label: 'Farms', value: o.farms, delta: `${o.farms_last_7d} new last 7d` },
+        { label: 'Mobs', value: o.mobs, delta: `${fmtNum(o.total_head)} head tracked` },
+        { label: 'CSV uploads', value: o.weigh_history_rows, delta: `${o.uploads_last_7d} last 7d · ${o.uploads_last_30d} last 30d` },
+        { label: 'Animals tracked', value: o.distinct_eids, delta: `${fmtNum(o.animal_weighs_rows)} weigh records` },
+        { label: 'Email confirmed', value: `${o.confirmed_users}/${o.users}`, delta: `${o.users - o.confirmed_users} pending`, muted: true }
+      ];
+      document.getElementById('tiles').innerHTML = tiles.map(t => `
+        <div class="tile">
+          <div class="label">${escapeHtml(t.label)}</div>
+          <div class="value">${fmtNum(t.value)}</div>
+          <div class="delta ${t.muted ? 'muted' : ''}">${escapeHtml(t.delta || '')}</div>
+        </div>
+      `).join('');
+    }
+
+    // ── User table ────────────────────────────────────────────
+    document.querySelectorAll('#userTable th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        const k = th.dataset.sort;
+        if (sortKey === k) sortAsc = !sortAsc;
+        else { sortKey = k; sortAsc = false; }
+        renderUserTable();
+      });
+    });
+
+    document.getElementById('userFilter').addEventListener('input', renderUserTable);
+
+    function renderUserTable() {
+      const q = document.getElementById('userFilter').value.trim().toLowerCase();
+      let rows = cachedUsers.slice();
+      if (q) {
+        rows = rows.filter(u => {
+          if ((u.email || '').toLowerCase().includes(q)) return true;
+          return (u.farms || []).some(f =>
+            (f.farm_name || '').toLowerCase().includes(q) ||
+            (f.region    || '').toLowerCase().includes(q)
+          );
+        });
+      }
+
+      // Sort
+      const numKeys = new Set(['farm_count','mob_count','total_head','weigh_rows','distinct_eids']);
+      const dateKeys = new Set(['created_at','last_activity']);
+      rows.sort((a, b) => {
+        let av = a[sortKey], bv = b[sortKey];
+        if (numKeys.has(sortKey)) { av = Number(av) || 0; bv = Number(bv) || 0; return sortAsc ? av - bv : bv - av; }
+        if (dateKeys.has(sortKey)) { av = av || ''; bv = bv || ''; return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av); }
+        av = (av || '').toString().toLowerCase();
+        bv = (bv || '').toString().toLowerCase();
+        return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+      });
+
+      // Sort indicator
+      document.querySelectorAll('#userTable th').forEach(th => {
+        th.classList.remove('sorted', 'asc');
+        if (th.dataset.sort === sortKey) {
+          th.classList.add('sorted');
+          if (sortAsc) th.classList.add('asc');
+        }
+      });
+
+      if (!rows.length) {
+        document.getElementById('userBody').innerHTML = '<tr><td colspan="8" class="loading">No users match.</td></tr>';
+        return;
+      }
+
+      const html = rows.map(u => {
+        const isActive = u.last_activity && (Date.now() - new Date(u.last_activity).getTime()) < 30 * 86400_000;
+        const chip = isActive ? '<span class="chip active">active</span>' :
+                    (u.last_activity ? '' : '<span class="chip inactive">no data</span>');
+        const drill = expandedUser === u.id ? drillHtml(u) : '';
+        return `
+          <tr class="user-row ${expandedUser === u.id ? 'expanded' : ''}" data-uid="${escapeHtml(u.id)}">
+            <td>
+              <div class="email">${escapeHtml(u.email)}${chip}</div>
+              <div class="sub">${escapeHtml(u.id.slice(0, 8))}…${u.email_confirmed_at ? '' : ' · unverified'}</div>
+            </td>
+            <td class="num">${fmtNum(u.farm_count)}</td>
+            <td class="num">${fmtNum(u.mob_count)}</td>
+            <td class="num">${fmtNum(u.total_head)}</td>
+            <td class="num">${fmtNum(u.weigh_rows)}</td>
+            <td class="num">${fmtNum(u.distinct_eids)}</td>
+            <td>${fmtDate(u.created_at)}<div class="sub">${fmtRel(u.created_at)}</div></td>
+            <td>${u.last_activity ? fmtDate(u.last_activity) : '—'}<div class="sub">${fmtRel(u.last_activity)}</div></td>
+          </tr>
+          ${drill ? `<tr class="drill"><td colspan="8"><div class="drill-inner">${drill}</div></td></tr>` : ''}
+        `;
+      }).join('');
+
+      document.getElementById('userBody').innerHTML = html;
+
+      document.querySelectorAll('.user-row').forEach(tr => {
+        tr.addEventListener('click', () => {
+          const uid = tr.dataset.uid;
+          expandedUser = expandedUser === uid ? null : uid;
+          renderUserTable();
+        });
+      });
+    }
+
+    function drillHtml(u) {
+      if (!u.farms || !u.farms.length) return '<div class="empty">No farms yet.</div>';
+      return '<h3>Farms &amp; mobs</h3>' + u.farms.map(f => {
+        const mobs = (f.mobs || []).slice().sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''));
+        const mobRows = mobs.length ? `
+          <table>
+            <thead><tr>
+              <th>Mob</th>
+              <th style="text-align:right">Head</th>
+              <th style="text-align:right">Weigh events</th>
+              <th style="text-align:right">Animal rows</th>
+              <th>Last update</th>
+            </tr></thead>
+            <tbody>
+              ${mobs.map(m => `
+                <tr>
+                  <td>${escapeHtml(m.id.slice(0, 8))}…</td>
+                  <td style="text-align:right">${fmtNum(m.head_count)}</td>
+                  <td style="text-align:right">${fmtNum(m.weigh_count)}</td>
+                  <td style="text-align:right">${fmtNum(m.animal_rows)}</td>
+                  <td>${m.updated_at ? fmtDate(m.updated_at) : '—'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        ` : '<div class="empty">No mobs uploaded yet.</div>';
+        return `
+          <div class="farm-block">
+            <div class="farm-head">
+              <span>${escapeHtml(f.farm_name)}</span>
+              <span class="farm-meta">${escapeHtml(f.region || '')} · ${escapeHtml(f.farm_type || '')} · registered ${fmtDate(f.created_at)}</span>
+            </div>
+            ${mobRows}
+          </div>
+        `;
+      }).join('');
+    }
+
+    boot();
+  </script>
+</body>
+</html>

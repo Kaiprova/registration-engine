@@ -45,6 +45,21 @@ async function requireAuth(req, res, next) {
   next();
 }
 
+// Admin gate — must run AFTER requireAuth. Whitelist comes from ADMIN_EMAILS
+// (comma-separated) or falls back to the Alps2Ocean defaults.
+function adminEmails() {
+  const raw = (process.env.ADMIN_EMAILS || 'info@miti.nz,alps2ocean.foods.nz@gmail.com')
+    .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  return new Set(raw);
+}
+function requireAdmin(req, res, next) {
+  const email = (req.user && req.user.email || '').toLowerCase();
+  if (!email || !adminEmails().has(email)) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  next();
+}
+
 // POST /api/farms
 app.post('/api/farms', requireAuth, async (req, res) => {
   const { farm_name, region, farm_type, herd_size } = req.body;
@@ -524,7 +539,189 @@ app.patch('/api/mobs/:id', requireAuth, async (req, res) => {
   res.json(data);
 });
 
+// ───────────────────────────────────────────────────────────────────
+// Admin API — platform-wide read-only views. Gated by requireAdmin.
+// All queries use the service role key (see getSupabase) so they
+// bypass RLS and see every farmer's data. Never add writes here
+// without explicit scoping.
+// ───────────────────────────────────────────────────────────────────
+
+// Tiny cache so the heavy user list doesn't re-query Auth on every refresh.
+let _usersCache = { at: 0, rows: null };
+async function listAllAuthUsers() {
+  if (_usersCache.rows && Date.now() - _usersCache.at < 30_000) return _usersCache.rows;
+  const sb = getSupabase();
+  const rows = [];
+  let page = 1;
+  while (true) {
+    const { data, error } = await sb.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) throw error;
+    const batch = (data && data.users) || [];
+    rows.push(...batch);
+    if (batch.length < 1000) break;
+    page++;
+    if (page > 20) break; // hard stop at 20k users
+  }
+  _usersCache = { at: Date.now(), rows };
+  return rows;
+}
+
+// GET /api/admin/overview — platform totals + recent activity
+app.get('/api/admin/overview', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const sb = getSupabase();
+    const [users, farmsR, mobsR, whR, awR] = await Promise.all([
+      listAllAuthUsers(),
+      sb.from('farms').select('id, owner_id, created_at'),
+      sb.from('mobs').select('id, farm_id, head_count, avg_weight, updated_at, created_at'),
+      sb.from('weigh_history').select('id, mob_id, weigh_date, created_at'),
+      sb.from('animal_weighs').select('eid, weigh_date, created_at')
+    ]);
+    if (farmsR.error) throw farmsR.error;
+    if (mobsR.error)  throw mobsR.error;
+    if (whR.error)    throw whR.error;
+    if (awR.error)    throw awR.error;
+
+    const now = Date.now();
+    const d7  = now - 7  * 86400_000;
+    const d30 = now - 30 * 86400_000;
+    const since = (iso, cutoff) => iso && new Date(iso).getTime() >= cutoff;
+
+    const farms = farmsR.data || [];
+    const mobs  = mobsR.data  || [];
+    const wh    = whR.data    || [];
+    const aw    = awR.data    || [];
+
+    const totalHead = mobs.reduce((s, m) => s + (Number(m.head_count) || 0), 0);
+    const distinctEids = new Set(aw.map(a => a.eid)).size;
+
+    res.json({
+      users: users.length,
+      users_last_7d:  users.filter(u => since(u.created_at, d7)).length,
+      users_last_30d: users.filter(u => since(u.created_at, d30)).length,
+      confirmed_users: users.filter(u => u.email_confirmed_at || u.confirmed_at).length,
+      farms: farms.length,
+      farms_last_7d:  farms.filter(f => since(f.created_at, d7)).length,
+      mobs: mobs.length,
+      total_head: totalHead,
+      weigh_history_rows: wh.length,
+      animal_weighs_rows: aw.length,
+      distinct_eids: distinctEids,
+      uploads_last_7d:  wh.filter(w => since(w.created_at, d7)).length,
+      uploads_last_30d: wh.filter(w => since(w.created_at, d30)).length,
+      generated_at: new Date().toISOString()
+    });
+  } catch (e) {
+    console.error('[admin/overview]', e);
+    res.status(500).json({ error: e.message || 'Overview failed' });
+  }
+});
+
+// GET /api/admin/users — per-user rollup for the platform user table
+app.get('/api/admin/users', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const sb = getSupabase();
+    const [users, farmsR, mobsR, whR, awR] = await Promise.all([
+      listAllAuthUsers(),
+      sb.from('farms').select('id, owner_id, farm_name, region, farm_type, created_at'),
+      sb.from('mobs').select('id, farm_id, head_count, updated_at'),
+      sb.from('weigh_history').select('mob_id, weigh_date, created_at'),
+      sb.from('animal_weighs').select('mob_id, eid, weigh_date, created_at')
+    ]);
+    if (farmsR.error) throw farmsR.error;
+    if (mobsR.error)  throw mobsR.error;
+    if (whR.error)    throw whR.error;
+    if (awR.error)    throw awR.error;
+
+    const farmsByOwner = new Map();  // owner_id -> farm[]
+    for (const f of farmsR.data || []) {
+      if (!farmsByOwner.has(f.owner_id)) farmsByOwner.set(f.owner_id, []);
+      farmsByOwner.get(f.owner_id).push(f);
+    }
+
+    const mobsByFarm = new Map();    // farm_id -> mob[]
+    for (const m of mobsR.data || []) {
+      if (!mobsByFarm.has(m.farm_id)) mobsByFarm.set(m.farm_id, []);
+      mobsByFarm.get(m.farm_id).push(m);
+    }
+
+    const whByMob = new Map();       // mob_id -> weigh_history[]
+    for (const w of whR.data || []) {
+      if (!whByMob.has(w.mob_id)) whByMob.set(w.mob_id, []);
+      whByMob.get(w.mob_id).push(w);
+    }
+
+    const awByMob = new Map();       // mob_id -> animal_weighs[]
+    for (const a of awR.data || []) {
+      if (!awByMob.has(a.mob_id)) awByMob.set(a.mob_id, []);
+      awByMob.get(a.mob_id).push(a);
+    }
+
+    const out = users.map(u => {
+      const farms = farmsByOwner.get(u.id) || [];
+      let mobCount = 0, totalHead = 0, weighRows = 0, animalRows = 0;
+      const eidSet = new Set();
+      let lastActivity = null;
+      for (const f of farms) {
+        const fMobs = mobsByFarm.get(f.id) || [];
+        mobCount += fMobs.length;
+        for (const m of fMobs) {
+          totalHead += Number(m.head_count) || 0;
+          if (m.updated_at && (!lastActivity || m.updated_at > lastActivity)) lastActivity = m.updated_at;
+          const whs = whByMob.get(m.id) || [];
+          weighRows += whs.length;
+          for (const w of whs) {
+            if (w.created_at && (!lastActivity || w.created_at > lastActivity)) lastActivity = w.created_at;
+          }
+          const aws = awByMob.get(m.id) || [];
+          animalRows += aws.length;
+          for (const a of aws) eidSet.add(a.eid);
+        }
+      }
+      return {
+        id: u.id,
+        email: u.email || '(no email)',
+        created_at: u.created_at,
+        last_sign_in_at: u.last_sign_in_at || null,
+        email_confirmed_at: u.email_confirmed_at || u.confirmed_at || null,
+        farm_count: farms.length,
+        mob_count: mobCount,
+        total_head: totalHead,
+        weigh_rows: weighRows,
+        animal_rows: animalRows,
+        distinct_eids: eidSet.size,
+        last_activity: lastActivity,
+        farms: farms.map(f => ({
+          id: f.id, farm_name: f.farm_name, region: f.region, farm_type: f.farm_type, created_at: f.created_at,
+          mobs: (mobsByFarm.get(f.id) || []).map(m => ({
+            id: m.id,
+            head_count: m.head_count,
+            updated_at: m.updated_at,
+            weigh_count: (whByMob.get(m.id) || []).length,
+            animal_rows: (awByMob.get(m.id) || []).length
+          }))
+        }))
+      };
+    });
+
+    // Sort: most recent activity first, then newest signup
+    out.sort((a, b) => {
+      const la = a.last_activity || a.created_at || '';
+      const lb = b.last_activity || b.created_at || '';
+      return lb.localeCompare(la);
+    });
+
+    res.json({ users: out, generated_at: new Date().toISOString() });
+  } catch (e) {
+    console.error('[admin/users]', e);
+    res.status(500).json({ error: e.message || 'User list failed' });
+  }
+});
+
+// Explicit route so /admin serves admin.html (catchall would return index.html)
+app.get('/admin', (_req, res) => res.sendFile('admin.html', { root: 'public' }));
+
 app.get('*', (_req, res) => res.sendFile('index.html', { root: 'public' }));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`KaiProva server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`KaiProva server running on port ${PORT} (admin: /admin)`));
