@@ -2043,7 +2043,11 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const SUPABASE_URL = 'https://tafwprmxhwuhxckjdwdj.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_FGT8ihbVKO7F9nPNQCsIFQ__ATCkcTA';
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Implicit flow: magic-link returns to #access_token=... in any browser,
+// no local code_verifier needed. Cross-device email clicks work.
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { flowType: 'implicit' }
+});
 
 const $ = id => document.getElementById(id);
 const TOP_SECTIONS = ['sectionLogin', 'sectionMagicSent', 'sectionRegister', 'sectionApp'];
@@ -3317,7 +3321,10 @@ $('btnSendMagicLink').addEventListener('click', async () => {
   btn.disabled = true;
   btn.textContent = 'Sending…';
 
-  const { error } = await supabase.auth.signInWithOtp({ email });
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.origin }
+  });
 
   btn.disabled = false;
   btn.textContent = 'Send magic link';
