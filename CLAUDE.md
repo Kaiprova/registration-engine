@@ -228,3 +228,75 @@ Empty state when no per-animal data (pre-Phase-3a uploads): message prompts farm
 ## Next: Phase 4 — demo contracts + offers
 
 Previously the Phase 3 scope, now pushed back. Inline the main platform's `FARMS`, `CONTRACTS`, `NOTIFS` arrays. Write an adapter that maps real Supabase mobs into the `{cls, season, bw, lwg, ageMonths, weighHistory}` shape the main platform's view functions expect. Bridge is what unlocks the Offers + Trace views built against demo data while keeping mob/farm data real.
+
+## Auth (26 Apr 2026)
+
+End-to-end auth hardening session. Two sign-in options now: **Google OAuth** (primary CTA) and **magic link** (fallback for non-Google addresses). No passwords — explicit decision, do not relitigate. For a B2B platform with weekly logins, magic link + Google + long sessions is the appropriate model; passwords add registration friction, recovery flow burden, and storage liability with no real benefit.
+
+### Critical client config
+
+`public/index.html` — the Supabase client **must** be created with `flowType: 'implicit'`:
+
+```js
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { flowType: 'implicit' }
+});
+```
+
+Default PKCE flow stores a `code_verifier` in localStorage on the device that requested the magic link, so cross-device clicks (request on phone, click on laptop) and clicks in a different browser fail with `otp_expired`. Implicit flow returns the access token in the URL hash with no per-device verifier — works anywhere.
+
+Both entry points pass an explicit `redirectTo`:
+
+```js
+supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } });
+supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+```
+
+### Required Supabase dashboard config
+
+- **Authentication → Providers → Google**: enabled, with Client ID + Client Secret from the `kaiprova` Google Cloud project
+- **Authentication → Providers → Email**: "Confirm email" ON — auto account-linking by email depends on it
+- **Authentication → Sessions** (User Sessions): Time-box `0` (never), Inactivity timeout `0` (never) — these are the Free-plan defaults, no Pro needed. Refresh tokens auto-rotate, users stay signed in until manual sign-out or browser data clear
+
+### Required Google Cloud config
+
+Project: `kaiprova`. OAuth client (Web application) at https://console.cloud.google.com/auth/clients?project=kaiprova:
+
+- Authorized JavaScript origin: `https://web-production-dab45.up.railway.app`
+- Authorized redirect URI: `https://tafwprmxhwuhxckjdwdj.supabase.co/auth/v1/callback`
+
+OAuth consent screen **published** (not Testing) so users outside the test-users list don't see the "Google hasn't verified this app" warning. Email/profile scopes don't trigger Google verification review.
+
+### Auto account linking
+
+When a user signs in via Google with an email that already has a confirmed magic-link account, Supabase auto-links to the existing `auth.users` row — same user ID, providers list becomes `["email", "google"]`. Confirmed working. Don't worry about creating duplicates *as long as the original email user is confirmed*.
+
+If you ever create a user manually and they can't sign in, check `email_confirmed_at` on the `auth.users` row — unconfirmed users return magic links as `type=signup` (which the implicit-flow client can't handle as a regular login), causing perpetual `otp_expired`. Confirm via admin API:
+
+```bash
+curl -X PUT "$SUPABASE_URL/auth/v1/admin/users/<uuid>" \
+  -H "apikey: $SUPABASE_SVC" \
+  -H "Authorization: Bearer $SUPABASE_SVC" \
+  -H "Content-Type: application/json" \
+  -d '{ "email_confirm": true }'
+```
+
+### Bugs fixed today
+
+- `fix(auth): switch Supabase to implicit flow for cross-device magic links` (`34a1574`) — the PKCE → implicit migration above
+- `fix(auth): resetWizard() crashed on missing #farmType element` (`12ff04f`) — the wizard was migrated from `<select id="farmType">` to a `#farmRoles` checkbox group, but `resetWizard` still called `$('farmType').value = ''`. The TypeError bailed `handleSession` before `showSection('sectionRegister')` could run, stranding signed-in users on `sectionLogin` with the green header visible. Now uses a checkbox-uncheck loop.
+- `feat(auth): add Sign in with Google as primary option on login` (`8f46508`) — Google button + handler in `sectionLogin`, "or" divider above the magic-link form
+
+### Admin generate-link escape hatch
+
+If email rate limit is hit (Supabase built-in SMTP: 4/hr/address, 30/hr/project) or magic-link delivery is broken, mint a usable link directly:
+
+```bash
+curl -X POST "$SUPABASE_URL/auth/v1/admin/generate_link" \
+  -H "apikey: $SUPABASE_SVC" \
+  -H "Authorization: Bearer $SUPABASE_SVC" \
+  -H "Content-Type: application/json" \
+  -d '{ "type": "magiclink", "email": "<address>", "options": { "redirect_to": "https://web-production-dab45.up.railway.app/" } }'
+```
+
+The `action_link` in the response can be pasted into a browser address bar. Bypasses email entirely.
