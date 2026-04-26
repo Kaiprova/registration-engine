@@ -3210,7 +3210,11 @@ function resetWizard() {
   $('farmName').value = '';
   $('farmRegion').value = '';
   $('herdSize').value = '';
-  $('farmType').value = '';
+  // Farm role moved from <select id="farmType"> to a checkbox group in #farmRoles.
+  // The old `$('farmType').value = ''` threw on the missing element and crashed
+  // handleSession before it could call showSection('sectionRegister') — leaving
+  // siteHeader visible but the user stranded on sectionLogin.
+  document.querySelectorAll('#farmRoles input[type="checkbox"]').forEach(cb => { cb.checked = false; });
   setAlert('step1Alert', '');
   setAlert('step2Alert', '');
   setAlert('step3Alert', '');
